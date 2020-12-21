@@ -22,8 +22,8 @@ struct.opt_algorithm = 'default';
 struct.fcon_flag = 0;
 
 %%%%% SAMPLING %%%%%
-struct.w = 20;
-struct.Nts = 10;
+struct.w = 30;
+struct.Nts = 7;
 
 %%%%% NÌINTEGRATION %%%%%
 if struct.simulationModel == 1
