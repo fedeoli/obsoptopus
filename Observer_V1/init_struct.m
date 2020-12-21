@@ -33,7 +33,7 @@ if struct.simulationModel == 1
 else
     struct.T0 = 0.2108;
     struct.Ts = 1e-6;
-    struct.Tend = 0.2130;
+    struct.Tend = 0.2110;
 end
 
 struct.int_flag = 'default';
@@ -77,4 +77,4 @@ struct.init_param_error_amp = 1*struct.noise_enable*1e-1;
 struct.model = 'runaway';
 
 %%%%% SCALE FACTOR %%%%%
-struct.scale_factor = [1;1e-7].*ones(2,struct.dim_out);
+struct.scale_factor = [1;0].*ones(2,struct.dim_out);

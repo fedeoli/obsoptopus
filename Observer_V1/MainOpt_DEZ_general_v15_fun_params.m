@@ -285,7 +285,9 @@ if DynOpt.ObserverOn == 1
         %forward propagation of the previous estimate
         if(k>1)
             % update parameters
-            params_update(DynOpt.X);
+            if DynOpt.identify == 1
+                params_update(DynOpt.X);
+            end
             
             % input
             set_input(k);
@@ -333,6 +335,7 @@ if DynOpt.ObserverOn == 1
         else
             
             % Display iteration slengthtep
+            disp(['gamma: ', num2str(params.gamma), ' gamma1: ', num2str(params.gamma1), ' Wt: ', num2str(params.Wt)])
             disp(['n window: ', num2str(DynOpt.w),'  n samples: ', num2str(DynOpt.Nts)])
             disp(['Iteration Number: ', num2str(floor(k/(DynOpt.Nts+1))),'/',num2str(floor(length(DynOpt.time)/(DynOpt.Nts+1)))])
             disp(['Last cost function: ', num2str(DynOpt.Jstory(end))]);
@@ -398,7 +401,9 @@ if DynOpt.ObserverOn == 1
                             DynOpt.jump_flag = 0;
                             
                             % params and state update
-                            params_update(DynOpt.X);
+                            if DynOpt.identify == 1
+                                params_update(DynOpt.X);
+                            end
                             x_propagate = DynOpt.X;
                             
                             %%%%%%%%%%%%%%%%% FIRST MEASURE UPDATE %%%%%%%%

@@ -30,6 +30,7 @@ function grid_search_struct_v2(params_interval,pathname)
         save(final_path);
         
         load temp
+        clc
     end
     
     delete temp.mat
