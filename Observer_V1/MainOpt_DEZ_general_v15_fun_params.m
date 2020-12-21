@@ -1,4 +1,4 @@
-function [DynOpt, params] = MainOpt_DEZ_general_v14_fun_params(struct)
+function [DynOpt, params] = MainOpt_DEZ_general_v15_fun_params(struct)
 
 %% Init Section
 close all
@@ -114,7 +114,6 @@ else
     DynOpt.Tstart = struct.T0;
     DynOpt.Tend = struct.Tend;
     DynOpt.sample_time = struct.sample_time;
-    DynOpt.data = struct.dati;
     
     [rows,cols] = size(DynOpt.data);
     
@@ -265,11 +264,9 @@ if DynOpt.ObserverOn == 1
     DynOpt.grad_story = zeros(DynOpt.StateDim + length(DynOpt.param_estimate),1);
 
     % check update condition thresholds (if blue_flag==1 the previous are not checked)
-    DynOpt.J_thresh = 1e-3;
-    DynOpt.diff_thresh = 0;
-    DynOpt.blue_flag = 0;
-    DynOpt.jump_propagation = 0;
-    DynOpt.jump_flag = 0;
+    DynOpt.J_thresh = 1e-2;
+    DynOpt.diff_thresh = 1e1;
+    DynOpt.blue_flag = 1;
 
 %% Optimisation implementation
     disp('Processing data with the optimization-based observer...')
@@ -335,7 +332,7 @@ if DynOpt.ObserverOn == 1
             disp(['n window: ', num2str(DynOpt.w),'  n samples: ', num2str(DynOpt.Nts)])
             disp(['Iteration Number: ', num2str(floor(k/(DynOpt.Nts+1))),'/',num2str(floor(length(DynOpt.time)/(DynOpt.Nts+1)))])
             disp(['Last cost function: ', num2str(DynOpt.Jstory(end))]);
-            disp(['Last jump: ',num2str(DynOpt.jump_flag)]);
+
 
             %%%% OUTPUT measurements - buffer of w elements
             DynOpt.Y(:,1:end-1) = DynOpt.Y(:,2:end);
@@ -368,9 +365,6 @@ if DynOpt.ObserverOn == 1
 
                     % set of initial conditions
                     DynOpt.temp_x0 = DynOpt.OptXstory(:,DynOpt.BackTimeIndex);
-                    
-                    % store derivative buffer at this point
-                    DynOpt.buf_dyhat_temp = DynOpt.buf_dyhat;
 
                     % Optimisation
                     if strcmp(DynOpt.opt_method,'default')
@@ -392,36 +386,48 @@ if DynOpt.ObserverOn == 1
                         % check state variation condition
                         state_diff = norm(DynOpt.X-NewXopt);
 
-                        if ((abs(J_dot) > DynOpt.J_thresh) || (state_diff < DynOpt.diff_thresh) || DynOpt.blue_flag)
+                        if ((abs(J_dot) > DynOpt.J_thresh) || (state_diff < DynOpt.diff_thresh) || DynOpt.blue_flag) 
                             DynOpt.X = NewXopt;
                             DynOpt.OptXstory(:,DynOpt.BackTimeIndex) = DynOpt.X;
-                            DynOpt.jump_flag = 0;
 
                             % params and state update
                             params_update(DynOpt.X);
                             x_propagate = DynOpt.X;
                             for j =1:DynOpt.WindowSamples-1     
-                                set_input(DynOpt.BackTimeIndex+j);
+                                % back time
+                                back_time = DynOpt.BackTimeIndex+j;
+                                
+                                % set input
+                                set_input(back_time);
                                  
-                                tspan = [DynOpt.time(DynOpt.BackTimeIndex+j), DynOpt.time(DynOpt.BackTimeIndex+j)+DynOpt.Ts];
+                                % integrate
+                                tspan = [DynOpt.time(back_time), DynOpt.time(back_time)+DynOpt.Ts];
                                 temp = rk4_V1_1(DynOpt.model, tspan, x_propagate, params);
                                 x_propagate = temp(:,end);                         
-                                DynOpt.OptXstory(:,DynOpt.BackTimeIndex+j) = x_propagate;
+                                DynOpt.OptXstory(:,back_time) = x_propagate;
+
+                                % manage measurements
+                                % set the derivative buffer as before the optimisation process (multiple f computation)
+                                if (back_time) >= DynOpt.d1_derivative
+                                    DynOpt.buf_dyhat_temp = DynOpt.Yhat_full_story(:,back_time-(DynOpt.d1_derivative-1):back_time);
+                                else
+                                    init_pos = DynOpt.d1_derivative-back_time;
+                                    DynOpt.buf_dyhat_temp = [zeros(DynOpt.dim_out,init_pos), DynOpt.Yhat_full_story(:,back_time-(back_time-1):back_time)];
+                                end
+
+                                %%%% ESTIMATED measurements
+                                % measures       
+                                % NB: the output storage has to be done in
+                                % back_time+1 as the propagation has been
+                                % performed 
+                                [DynOpt.buf_dyhat_temp, Yhat] = DynOpt.get_measure(x_propagate,0,measure_forward,DynOpt.buf_dyhat_temp);
+                                DynOpt.Yhat_full_story(:,back_time+1) = Yhat(:,1);
+                                DynOpt.dYhat_full_story(:,back_time+1) = Yhat(:,2);
                             end
                         else
                             NewXopt = DynOpt.temp_x0;
                             J = DynOpt.cost_function(NewXopt);
-                            DynOpt.jump_propagation = DynOpt.jump_propagation + 1;
-                            DynOpt.jump_flag = 1;
                         end
-                        
-                        %%%% ESTIMATED measurements
-                        % update derivative buffer
-                        DynOpt.buf_dyhat = DynOpt.buf_dyhat_temp;
-                        % measures                      
-                        [DynOpt.buf_dyhat_temp, Yhat] = DynOpt.get_measure(NewXopt,DynOpt.w,measure_forward,DynOpt.buf_dyhat_temp);
-                        DynOpt.Yhat_full_story(:,end) = Yhat(:,1);
-                        DynOpt.dYhat_full_story(:,end) = Yhat(:,2);
                     end
 
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% 

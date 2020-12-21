@@ -19,7 +19,7 @@ struct.y_end = 1;
 % optimisation
 struct.opt_method = 'default';
 struct.opt_algorithm = 'default';
-struct.fcon_flag = 1;
+struct.fcon_flag = 0;
 
 %%%%% SAMPLING %%%%%
 struct.w = 20;
@@ -29,7 +29,7 @@ struct.Nts = 10;
 if struct.simulationModel == 1
     struct.T0 = 0;
     struct.Ts = 5e-4;
-    struct.Tend = 1;
+    struct.Tend = 0.4;
 else
     struct.T0 = 0.2108;
     struct.Ts = 1e-6;
@@ -43,8 +43,8 @@ struct.forward = 1;
 if struct.simulationModel == 0
     load simulation/shots/DatiW_Shot43649.mat
     %%% filtro %%%
-    struct.filter = 1;
-    if struct.filter == 0
+    struct.filter = 0;
+    if struct.filter == 1
         temp_dati = moving_average_v2(dati(:,2),15,'center');
         struct.dati = [dati(:,1),temp_dati];
         struct.dati_raw = dati;
@@ -68,13 +68,13 @@ struct.max_iter = 20;
 struct.grad_thresh = 1e-6;
 
 %%%%% NOISE %%%%%
-struct.noise_enable = 1;
-struct.noise_amp = 1*struct.noise_enable*1e-4;
-struct.init_error_amp = 1*struct.noise_enable*1e-3*ones(2,1);
-struct.init_param_error_amp = 1*struct.noise_enable*1e-3;
+struct.noise_enable = 0;
+struct.noise_amp = 1*struct.noise_enable*1e-3;
+struct.init_error_amp = 1*struct.noise_enable*1e-1*[1;1];
+struct.init_param_error_amp = 1*struct.noise_enable*1e-1;
 
 %%%%% MODEL %%%%%
 struct.model = 'runaway';
 
 %%%%% SCALE FACTOR %%%%%
-struct.scale_factor = [1;0].*ones(2,struct.dim_out);
+struct.scale_factor = [1;1].*ones(2,struct.dim_out);

@@ -12,10 +12,8 @@ x_propagate = x;
 % check if measure or propagate
 if j == 0
     measure_flag = 1;
-    time_instant = DynOpt.ActualTimeIndex;
 else
     measure_flag = 0;
-    time_instant = DynOpt.BackTimeIndex;
 end
 
 % start from x0 --> propagate up to x at the jth window
