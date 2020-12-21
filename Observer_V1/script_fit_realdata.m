@@ -1,6 +1,7 @@
 
 %% simulate
 if 1
+    clear all
     pathname = 'simulation/runaway/data';
     
     params_interval = [0.2 1 0.1;...
