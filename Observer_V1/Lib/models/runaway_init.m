@@ -2,7 +2,7 @@
 % model simulation
 % plant data
 
-global DynOpt params struct
+global DynOpt params 
 if DynOpt.check == 0
     % electric charge
     params.Q = 1;

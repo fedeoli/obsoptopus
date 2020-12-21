@@ -1,6 +1,7 @@
 %% simulation data init
 
 % clear
+% clear all
 clc
 
 % dependencies
@@ -33,7 +34,7 @@ if struct.simulationModel == 1
 else
     struct.T0 = 0.2108;
     struct.Ts = 1e-6;
-    struct.Tend = 0.2120;
+    struct.Tend = 0.2115;
 end
 
 struct.int_flag = 'default';

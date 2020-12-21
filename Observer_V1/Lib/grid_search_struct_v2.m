@@ -1,5 +1,6 @@
 %% Montecarlo simulations 
 function grid_search_struct_v2(params_interval,pathname)
+
     % save data in path
     path = pathname;
     
@@ -15,11 +16,10 @@ function grid_search_struct_v2(params_interval,pathname)
         file = strcat('/simulation_',int2str(i));
 
         final_path = strcat(path,file);
-        filename = strcat(final_path,'.mat');
         save temp
         
         % launch algorithm
-        keep filename path final_path i B
+        keep path final_path i B n_comb
         init_struct
         
         struct.gamma = B(i,1);
