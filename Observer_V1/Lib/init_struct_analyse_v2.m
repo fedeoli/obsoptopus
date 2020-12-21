@@ -1,5 +1,5 @@
 %% simulation data init
-function struct = init_struct_analyse_v2(w,Nts)
+function struct = init_struct_analyse_v3(w,Nts)
     %% simulation data init
 
     %%%%% OBSERVER %%%%%

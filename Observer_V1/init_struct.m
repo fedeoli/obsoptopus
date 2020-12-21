@@ -1,7 +1,6 @@
 %% simulation data init
 
 % clear
-clear all
 clc
 
 % dependencies
@@ -9,7 +8,8 @@ addpath(genpath([pwd '/Lib']));
 
 %%%%% OBSERVER %%%%%
 struct.ObserverOn = 1;
-struct.simulationModel = 1;
+struct.simulationModel = 0;
+struct.identify = 0;
 struct.check = 0;
 
 % measure
@@ -68,13 +68,13 @@ struct.max_iter = 20;
 struct.grad_thresh = 1e-6;
 
 %%%%% NOISE %%%%%
-struct.noise_enable = 0;
+struct.noise_enable = 1;
 struct.noise_amp = 1*struct.noise_enable*1e-3;
-struct.init_error_amp = 1*struct.noise_enable*1e-1*[1;1];
+struct.init_error_amp = 1*struct.noise_enable*[1e-1;5e-1];
 struct.init_param_error_amp = 1*struct.noise_enable*1e-1;
 
 %%%%% MODEL %%%%%
 struct.model = 'runaway';
 
 %%%%% SCALE FACTOR %%%%%
-struct.scale_factor = [1;1].*ones(2,struct.dim_out);
+struct.scale_factor = [1;1e-7].*ones(2,struct.dim_out);

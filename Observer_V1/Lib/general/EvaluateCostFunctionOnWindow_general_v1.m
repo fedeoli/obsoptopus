@@ -21,7 +21,9 @@ Jtot = 0;
 X = x; 
 
 % params update
-params_update(X);
+if DynOpt.identify == 1
+    params_update(X);
+end
 
 % set the derivative buffer as before the optimisation process (multiple f computation)
 if DynOpt.BackTimeIndex >= DynOpt.d1_derivative

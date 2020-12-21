@@ -2,7 +2,7 @@
 % model simulation
 % plant data
 
-global DynOpt params
+global DynOpt params struct
 if DynOpt.check == 0
     % electric charge
     params.Q = 1;
@@ -11,13 +11,20 @@ if DynOpt.check == 0
     params.S = 0;
 
     % parameters
-    params.gamma = 0.5;
-    params.gamma1 = 2.5;
-    params.ni = 0.5;
-    params.Wt = 0.1;
+    if struct.identify == 1
+        params.gamma = 0.5;
+        params.gamma1 = 2.5;
+        params.ni = 0.5;
+        params.Wt = 0.1;
+    else
+        params.gamma = struct.gamma;
+        params.gamma1 = struct.gamma1;
+        params.ni = 0.5;
+        params.Wt = struct.Wt;
+    end
 
     % eps_coef
-    params.eps_coef = 50;
+    params.eps_coef = 1;
 
     % initial condition
     params.T0 = 0;
