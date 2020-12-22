@@ -95,7 +95,9 @@ end
 tic
 if(DynOpt.simulationModel == 1)
     
+    % display sim data
     disp('Model simulation')
+    disp(['gamma: ', num2str(params.gamma), ' gamma1: ', num2str(params.gamma1), ' Wt: ', num2str(params.Wt)])
     
     % state storage
     DynOpt.stateStory = zeros(DynOpt.StateDim,DynOpt.Niter);
@@ -523,6 +525,8 @@ if DynOpt.ObserverOn == 1
     DynOpt.Jstory = DynOpt.Jstory(1,2:end);
     DynOpt.grad_story = DynOpt.grad_story(:,2:end);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+else
+    %%% TBD %%%
 end
 
 end

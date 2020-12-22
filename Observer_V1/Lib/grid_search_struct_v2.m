@@ -16,12 +16,15 @@ function grid_search_struct_v2(params_interval,pathname)
         file = strcat('/simulation_',int2str(i));
 
         final_path = strcat(path,file);
-        save temp
+        save temp_2
         
         % launch algorithm
         keep path final_path i B n_comb
         init_struct
         
+        struct.identify = 0;
+        struct.ObserverOn = 0;
+        struct.simulationModel = 1;
         struct.gamma = B(i,1);
         struct.gamma1 = B(i,2);
         struct.Wt = B(i,3);
@@ -29,9 +32,7 @@ function grid_search_struct_v2(params_interval,pathname)
         [DynOpt, params] = MainOpt_DEZ_general_v15_fun_params(struct);
         save(final_path);
         
-        load temp
+        load temp_2
         clc
     end
-    
-    delete temp.mat
 end

@@ -1,4 +1,4 @@
-function [DynOpt, params] = MainOpt_DEZ_general_v10_fun_params(struct)
+function [DynOpt, params] = MainOpt_DEZ_general_sensitivity_fun_params(struct)
 
 %% Init Section
 close all
@@ -27,6 +27,7 @@ DynOpt.Tend = struct.Tend;
 % simulation time
 DynOpt.time = DynOpt.Tstart:DynOpt.Ts:DynOpt.Tend;
 DynOpt.Niter = length(DynOpt.time);
+DynOpt.check = struct.check;
 
 % model name
 DynOpt.modelname = struct.model;

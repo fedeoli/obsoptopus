@@ -9,8 +9,8 @@ addpath(genpath([pwd '/Lib']));
 
 %%%%% OBSERVER %%%%%
 struct.ObserverOn = 1;
-struct.simulationModel = 0;
-struct.identify = 0;
+struct.simulationModel = 1;
+struct.identify = 1;
 struct.check = 0;
 
 % measure
@@ -29,8 +29,8 @@ struct.Nts = 7;
 %%%%% NÌINTEGRATION %%%%%
 if struct.simulationModel == 1
     struct.T0 = 0;
-    struct.Ts = 5e-4;
-    struct.Tend = 0.4;
+    struct.Ts = 1e-4;
+    struct.Tend = 2;
 else
     struct.T0 = 0.2108;
     struct.Ts = 1e-6;

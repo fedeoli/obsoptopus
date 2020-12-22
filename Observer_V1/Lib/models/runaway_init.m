@@ -24,7 +24,7 @@ if DynOpt.check == 0
     end
 
     % eps_coef
-    params.eps_coef = 1;
+    params.eps_coef = 50;
 
     % initial condition
     params.T0 = 0;

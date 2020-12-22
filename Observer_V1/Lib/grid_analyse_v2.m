@@ -17,18 +17,18 @@ function struct = grid_analyse_v2(params_interval,pathname)
     % grid search
     for i=1:n_comb
 
-        file = strcat('/simulation_',int2str(counter_window));
-        file = strcat(file,'-');
-        file = strcat(file,int2str(counter_sample));
+        file = strcat('/simulation_',int2str(i));
 
         final_path = strcat(path,file);
         load(final_path);
 
-        lambda_min(end+1) = DynOpt.lambda_min;
-        mean_error(end+1) = norm(sum(abs(DynOpt.OptErrorStory),2));
+%         lambda_min(end+1) = DynOpt.lambda_min;
+%         mean_error(end+1) = norm(sum(abs(DynOpt.OptErrorStory),2));
+        state(i,:) = DynOpt.stateStory(2,:);
 
-        keep path lambda_min mean_error plot_flag B         
+        keep path lambda_min mean_error B state     
     end
-    struct.lambda_min = lambda_min(2:end);
-    struct.mean_error = mean_error(2:end); 
+%     struct.lambda_min = lambda_min(2:end);
+%     struct.mean_error = mean_error(2:end); 
+struct.state = state;
 end
