@@ -12,10 +12,10 @@ if DynOpt.check == 0
 
     % parameters
     if struct.identify == 1
-        params.gamma = 0.5;
-        params.gamma1 = 2.5;
-        params.ni = 0.5;
-        params.Wt = 0.1;
+        params.gamma = 5e-1;
+        params.gamma1 = 2.5e0;
+        params.ni = 5e-1;
+        params.Wt = 1e-1;
     else
         params.gamma = struct.gamma;
         params.gamma1 = struct.gamma1;
@@ -24,23 +24,34 @@ if DynOpt.check == 0
     end
 
     % eps_coef
-    params.eps_coef = 50;
+    if DynOpt.simulationModel == 1
+       params.eps_coef = 5e2;
+    else
+       params.eps_coef = 1; 
+    end
+    
+    % ringing
+    params.wq = 2e0;
+    params.chi = 0.8;
+    params.c1 = 1e0;
 
     % initial condition
     params.T0 = 0;
     params.W0 = 0.001;
+    params.x10 = 0;
+    params.x20 = 0;
 
     %%%%%%%%% WORKSPACE %%%%%%%%%%
     % params.T0 = 9.255;
     % params.W0 = 0.02176;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    params.StateDim = 2;
+    params.StateDim = 4;
 
     if DynOpt.simulationModel == 1
-        params.observed_state = 2;
+        params.observed_state = [2,3];
     else
-        params.observed_state = 2;
+        params.observed_state = [2,3];
     end
 
     params.input_flag = 0;
