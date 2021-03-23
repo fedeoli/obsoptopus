@@ -14,8 +14,8 @@ end
 
 
 vect_h = [vect_r(2)*vect_v(3) - vect_r(3)*vect_v(2);
-     vect_r(3)*vect_v(1) - vect_r(1)*vect_v(3);
-     vect_r(1)*vect_v(2) - vect_r(2)*vect_v(1)];
+        vect_r(3)*vect_v(1) - vect_r(1)*vect_v(3);
+        vect_r(1)*vect_v(2) - vect_r(2)*vect_v(1)];
 r = sqrt(vect_r(1)^2 + vect_r(2)^2 + vect_r(3)^2);
 
 h = sqrt(vect_h(1)^2 + vect_h(2)^2 + vect_h(3)^2);

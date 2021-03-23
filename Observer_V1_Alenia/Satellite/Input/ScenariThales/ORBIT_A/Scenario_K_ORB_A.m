@@ -146,7 +146,7 @@ ChiefAttitude_V2_2;
 %                     SIMULATION TIMES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-time_step = 1;                                                         % integration step [s]. IMPORTANT NOTE: If a high thrust engine is simulated, the time 
+time_step = struct.Ts;                                                         % integration step [s]. IMPORTANT NOTE: If a high thrust engine is simulated, the time 
                                                                        %                       step should be decreased accordingly. With Busek BGT-X5, the
                                                                        %                       recommended value is time_step = 0.1 sec. With GomSpace CGP3 and 
                                                                        %                       Busek BIT-1, the recommended value is time_step = 1 sec.              
@@ -157,7 +157,7 @@ if params.Attitude == 0 && params.RealThruster == 0
     
 end
 
-tfinal = 250;
+tfinal = struct.Tend;
 t = 0;                                                                  % time initialization
 time = 0:time_step:tfinal;                                              % initialization of time array
 tlength = length(time);

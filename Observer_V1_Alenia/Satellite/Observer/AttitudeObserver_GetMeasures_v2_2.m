@@ -34,7 +34,7 @@ end
 myutc = [2019 12 15 10 20 36]; %CHANGE THIS...??
 LatLongAlt = eci2lla(Agent_iner_eci*1E3,myutc); %converto from ECI to latitude, longitude,  altitude
 [mag_field_vector,hor_intensity,declinatioon,inclination,total_intensity] ...%IT IS SATURATED FOR MOST TRAJECTORY(ALTITUDE)!!!!
-                 = igrfmagm(max(1000,min(LatLongAlt(3),6E5)),LatLongAlt(1),LatLongAlt(2),decyear(2019,12,15),12); %
+                 = igrfmagm(max(1000,min(LatLongAlt(3),6E5)),LatLongAlt(1),LatLongAlt(2),decyear(2019,12,15),13); %
                 %mag_field_vector is in nanotesla, by IGRF11-12
 q_ECI2Body =  Agent_quaternion; 
 R_ECI2Body = quat2dcm(q_ECI2Body) ;

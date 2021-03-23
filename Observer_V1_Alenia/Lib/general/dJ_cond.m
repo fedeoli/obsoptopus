@@ -6,7 +6,7 @@ function dJ_cond(theta,beta,gamma)
     % propagation of Yhat 
     measure_forward = 1;
     buf_temp = DynOpt.buf_dyhat;
-    [~, Yhat] = DynOpt.get_measure(DynOpt.OptXstory(:,DynOpt.ActualTimeIndex),0,measure_forward,buf_temp,DynOpt.intYhat_full_story,params);
+    [~, Yhat] = DynOpt.get_measure(DynOpt.OptXstory(:,DynOpt.ActualTimeIndex),0,measure_forward,buf_temp,DynOpt.intYhat_full_story,params,DynOpt.ActualTimeIndex);
     
     % temp buffers
     Y_temp = DynOpt.Y_full_story;

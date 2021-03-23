@@ -14,6 +14,12 @@ if j == 0
     measure_flag = 1;
 else
     measure_flag = 0;
+    % store bias
+    if DynOpt.bias_dyn == 0
+        bias = 0;
+    else
+        bias = x_propagate(8);
+    end
 end
 
 % start from x0 --> propagate up to x at the jth window
@@ -36,18 +42,16 @@ if measure_flag == 0
     
     if (forward==1)
         % the max has been added to at least save the current state if
-        % diff(j) == 0 (no propagation at all)
-%         for i=1:max(sum(buf_dist(end-j+1:end)),1)-1
         for i=1:n_iter
             
             % integration
             [x_propagate, params] = DynOpt.model_propagate(DynOpt.BackTimeIndex+i,DynOpt.Ts,x_propagate,params);
-
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % update buffer
             x_read = zeros(DynOpt.dim_out,1);
             for k=1:length(params.observed_state)
-                x_read(k) = x_propagate(params.observed_state(k))+params.bias;
+                x_read(k) = x_propagate(params.observed_state(k));
             end
             
             % output computation
@@ -62,11 +66,15 @@ if measure_flag == 0
             % integral initial condition
             y_int = buf_intY(:,max(1,DynOpt.ActualTimeIndex-1)); 
             % integral
-            for i = 1:DynOpt.dim_out
-                y_int(i) = trapz(DynOpt.tspan,[y_int(i), y_read(i)]);
+            for z = 1:DynOpt.dim_out
+                y_int(z) = trapz(DynOpt.tspan,[y_int(z), y_read(z)]);
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+        end
+              
+        % edit initial state
+        if DynOpt.bias_dyn == 1
+            x_read = x_read+bias;
         end
     else
         %%%%% TO BE DONE %%%%

@@ -9,17 +9,19 @@ if params.Attitude
     % Compute Hill's attitude and angular velocity wrt ECI
     vect_r = satellites_iner_ECI(1:3);
     vect_v = satellites_iner_ECI(4:6);
+    %%%%% TEST %%%%%
+%     omega_Hill2ECI_ECI = [0;0;0];
     omega_Hill2ECI_ECI = OmegaHill2ECI(vect_r, vect_v, params.mi);
     R_ECI2Hill = RECI2Hill(vect_r, vect_v);
     
     % Compute chief's attitude and angular velocity
     
     %%%%% TEST CONTROL %%%%
-%     eul_Hill2Body = [0, 0, 0]*pi/180;
-    eul_Hill2Body = 1.*(DynOpt.target_attitude')*180/pi;
+    eul_Hill2Body = [0, 0, 0]*180/pi;
+%     eul_Hill2Body = 1*(DynOpt.target_attitude')*180/pi;
     %%%%%%%%%%%%%%%%%%%%%%%
     q_Hill2Body = RotationConversion_V2_1('EA321toQ', eul_Hill2Body);
-    omega_Body2Hill_Body = [7, -7, 7]*pi/180;
+    omega_Body2Hill_Body = [5, 5, 0]*pi/180;
     R_Hill2Body = RotationConversion_V2_1('QtoDCM', q_Hill2Body);
     R_ECI2Body = R_Hill2Body*R_ECI2Hill;
     

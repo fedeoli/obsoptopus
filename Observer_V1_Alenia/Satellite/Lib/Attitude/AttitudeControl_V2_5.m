@@ -31,17 +31,8 @@ function tau = AttitudeControl_V2_5(satellites_attitude, satellites_iner_ECI, t,
 %   20200113 V2_2:
 %   - With Impulsive control strategy: the attitude control is computed between two subsequent impulses to follow the required mission profile.
 %
-%   20200519 V2_3:
-%   - Conversions between different attitude sets replaced by 'RotationConversion_V2_1', a purposely developed, non built-in Matlab function
-%   - The attitude control is computed also if t < params.ParkingTime & params.CollisionFlag = 1, i.e. if a collision occurs before
-%     the end of the parking time.
-%
-%   %   20200908 V2_4:
-%   - Fixed bug for which the 'FiringAttitude' field of 'params.sat(i)' structure was used before it was defined when using the continuous control strategy. 
-%     In particular, if the control did not fire because under the firing threshold, the firing attitude was not defined yet, but called in this function.
-
 %%%%%%%%%%%%%
-global DynOpt
+% global DynOpt
 %%%%%%%%%%%%%
 
 % Extract the number of deputy satellites
@@ -65,26 +56,33 @@ for i = 1:Ndeputy + 1
     if (t > params.ParkingTime && i > 1 && ( ( strcmpi(params.ControlStrategy, 'Continuous') && ( params.u_module(i) > 0 || ( isfield(params.sat(i), 'FiringAttitude') && isempty(params.sat(i).FiringAttitude) == 0 ) ) ) || ( strcmpi(params.ControlStrategy, 'Impulsive') && params.sat(i).CanManeuverAttitude == 1 ) ) ) || (i == 1 && params.sat(1).CanManeuverAttitude == 1) || ( t <= params.ParkingTime && params.CollisionFlag == 1 && params.sat(i).CA_Maneuvering == 1 )
          
         % Convert the desired attitude to dcm representation
-        R_Hill2Body = RotationConversion_V2_1('EA321toDCM', DesiredAttitude(:,i)'*180/pi);
+        R_Hill2Body = eul2rotm(DesiredAttitude(:,i)');
         
         % Refer the desired attitude wrt ECI reference frame and convert to quaternions
         R_ECI2Body = R_Hill2Body*R_ECI2Hill;
         
         % convert reference trajectory
-        q_ref = RotationConversion_V2_1('EA321toQ', DesiredAttitude(:,i)'*180/pi);
-        q_ref = ConvertQuat_V2_1(q_ref, 'ScalarTo1');
+        q_ref = eul2quat(DesiredAttitude(:,i)');
         
-        % store quat ref
-        DynOpt.quat_ref(:,t) = q_ref;
+        %%%%%%% WATCH OUT %%%%%%%
+%         q_ref = ConvertQuat_V2_1(q_ref, 'ScalarTo1');
         
         % Extract the deputy current attitude and angular velocity
         q = satellites_attitude(1 + 7*(i-1): 4 + 7*(i-1))';
         
+        %%%%%%% WATCH OUT %%%%%%%
+%         q = ConvertQuat_V2_1(q, 'ScalarTo1');
+        
         % get omega 
         omega_Body2ECI_Body = satellites_attitude(5 + 7*(i-1): 7 + 7*(i-1));
         
+        % testing
+        omega_ref = R_ECI2Body*omega_Hill2ECI_ECI;
+%         omega_ref = zeros(3,1);
+        
+        
         % Compute the deputy current angular velocity wrt to Hill reference frame
-        omega_Body2Hill_Body = omega_Body2ECI_Body - R_ECI2Body*omega_Hill2ECI_ECI;
+        omega_Body2Hill_Body = omega_Body2ECI_Body - omega_ref;
         
         % Compute the quaternion error between current and desired attitudes
         q_err = QuaternionError_V2_1(q, q_ref);

@@ -1,5 +1,5 @@
 %% derivative of the flow - Khalil chapter 3
-function csi2_dot = satellite_dflow_input(t,csi1,csi2,params)
+function csi2_dot = satellite_dflow_input_v1(t,csi1,csi2,params)
 
     omega = csi1(5:7);
     cross_p = cross(omega,params.sat(1).I*omega);

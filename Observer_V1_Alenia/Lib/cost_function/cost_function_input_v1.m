@@ -56,6 +56,8 @@ function Jtot = cost_function_input_v1(theta_u,params)
         %%% update cost function %%%
         csi2 = e(5:DynOpt.StateDim,DynOpt.StateDim+1:DynOpt.StateDim+DynOpt.nparams);
         min_eig = min(eig(csi2));
+%         csi2 = e(1:DynOpt.StateDim,1:DynOpt.StateDim+DynOpt.nparams);
+%         min_eig = min(eig(csi2*csi2'));
         
         % state change barrier
         Q_barrier = 1e7*eye(DynOpt.StateDim+DynOpt.nparams);
@@ -80,6 +82,7 @@ function Jtot = cost_function_input_v1(theta_u,params)
         end
         
         Jtot = Jtot -min(DynOpt.min_eig_past,min_eig) + D_barrier*d_bound + Au_barrier*Au_bound; %+state_diff'*Q_barrier*state_diff
+        DynOpt.min_eig_past = min_eig;
     end
     
 end

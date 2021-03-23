@@ -34,7 +34,7 @@ if measure_flag == 0
         for i=1:n_iter
             
             % integration
-            [x_propagate, params] = model_propagate_local(DynOpt.BackTimeIndex+i,DynOpt.Ts,x_propagate,params);
+            [x_propagate, params] = DynOpt.model_propagate(DynOpt.BackTimeIndex+i,DynOpt.Ts,x_propagate,params);
             
             % dynamics
             xdot = DynOpt.model(x_propagate,params);

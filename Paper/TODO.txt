@@ -1,0 +1,26 @@
+Intro: 
+1) based on newton-like observers (Grizzle)
+2) Fault detection - faults on actuators - control approach (Xiao)
+3) Fault detection - faults on sensors - NL observer (Seiied)
+4) Joint state and dynamics modelling - GP models nonparametric (BuissonFenet)
+
+Results:
+1) state and parameters estimation
+2) No injection term - optimisation driven
+
+Development:
+1) offline usage to tune the model
+2) NN to approximate J, not the fault term
+
+
+ROADMAP PAPER
+1: Abstract & Intro 
+2: Algorithm description:
+	2.a: algorithm rationale			DONE
+	2.b: sensitivity equations			DONE
+	2.c: Euristic - fixed sampling
+3: Performance improvements
+	3.a: additional signals (derivative/integral)	DONE
+	3.b: adaptive sampling (policy)		DONE
+	3.c: input tuning 				DONE
+4: Conclusions

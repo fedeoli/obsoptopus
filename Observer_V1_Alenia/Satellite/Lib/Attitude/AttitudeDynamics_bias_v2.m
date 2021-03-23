@@ -37,21 +37,20 @@ function dw = AttitudeDynamics_bias_v2(w, params)
 %   - params.SatellitesCoordinates name modified.
 %   - Help introduced.
 %
-%   20200519 V2_2:
-%   - Conversions between different attitude sets replaced by 'RotationConversion_V2_1', a purposely developed, non built-in Matlab function
 
 % Initialize integration vectors and parameters
 
 global DynOpt
 
-dw = zeros(8, 1);
+dw = zeros(size(w));
 mie = params.mi;
 
 % Extract attitude, angular velocity and inertia of satellite "i"
 Att_sat = w(1:7);
 q_ECI2Body =  Att_sat(1:4);
-bias = w(8);
-omega_Body2ECI_Body = Att_sat(5:7)+bias;
+omega_Body2ECI_Body = Att_sat(5:7);
+
+% system inertia
 I = params.sat(1).I;
 
 % Extract "i"-th satellite's inertial position and velocity
@@ -69,10 +68,12 @@ dw(1:4,1) = 0.5*Om*q_ECI2Body;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%% Attitude Dynamics Equations %%%%%%%%%%%%%%%%%%%%%%%%
+% q_ECI2Body_conv = ConvertQuat_V2_1(q_ECI2Body', 'ScalarTo1');
+q_ECI2Body_conv = q_ECI2Body';
 
-q_ECI2Body_conv = ConvertQuat_V2_1(q_ECI2Body', 'ScalarTo1');
-%     q_ECI2Body_conv = q_ECI2Body';
-R_ECI2Body = RotationConversion_V2_1('QtoDCM', q_ECI2Body_conv);
+%%%%%% rotation matrix %%%%%
+R_ECI2Body = quat2dcm(q_ECI2Body_conv);
+
 Iom = I*omega_Body2ECI_Body;
 cross_omIom = [omega_Body2ECI_Body(2)*Iom(3) - omega_Body2ECI_Body(3)*Iom(2);...
     omega_Body2ECI_Body(3)*Iom(1) - omega_Body2ECI_Body(1)*Iom(3);...
@@ -112,14 +113,21 @@ end
 tau = params.tau(:,1);
 
 dw(5:7, 1) = I\( - cross_omIom + GG_torque + air_drag_torque + tau);
+% dw(5:7, 1) = I\( - cross_omIom + tau);
 
 %%%%% BIAS DYNAMICS %%%%
-if DynOpt.synthetic_int == 1
-    dw(8,1) = params.RW_var*randn(1) + params.RW_mean;
-    DynOpt.RW_mem(DynOpt.current_pos) = dw(8,1);
-else
-    dw(8,1) = 0;
+if DynOpt.bias_dyn == 1
+    if DynOpt.synthetic_int == 1
+        dw(8,1) = params.RW_var*randn(1) + params.RW_mean;
+        DynOpt.RW_mem(DynOpt.current_pos) = dw(8,1);
+    else
+        dw(8,1) = 0;
+    end
 end
+
+%%%%% TEST WORKAROUND %%%%%
+% dw = zeros(7,1);
 
 %%% SPEED UP MODIFICATION %%%
 dw = params.eps_coef*dw;
+end

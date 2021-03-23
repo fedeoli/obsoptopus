@@ -12,19 +12,17 @@ DynOpt.Agent = Agent;
 %               DYNOPT INITIALIZATION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% state
-DynOpt.integration_pos = 1;
-DynOpt.integration_att = 1;
+%%%% STATE AND OBSERVER %%%%
+DynOpt.integration_pos = struct.integration_pos;
+DynOpt.integration_att = struct.integration_att;
 DynOpt.control = struct.control;
+params.Control = DynOpt.control;
 
-if DynOpt.control == 1
-    params.Control = 1;
-end
+%%% observation data %%%
+params.observed_state = DynOpt.integration_pos*6 + [5 6 7];
+DynOpt.n_sensor = DynOpt.nMagneto;
 
-%% observer
-params.observed_state = [5 6 7];
-DynOpt.n_sensor = 0;
-
+%%% state data %%%%
 if DynOpt.integration_pos == 1 && DynOpt.integration_att == 0
     DynOpt.StateDim = 6*params.Nagents;
     DynOpt.StateDim_single_agent = 6;
@@ -42,45 +40,47 @@ elseif DynOpt.integration_pos == 1 && DynOpt.integration_att == 1
     DynOpt.dim_out = length(params.observed_state)+3*2;
 end
 
-%% integration time
+%%% INTEGRATION SETUP %%%%
 DynOpt.Niter = length(time);
 DynOpt.time = time;
-DynOpt.Ts = 1;
+DynOpt.Ts = struct.Ts;
 DynOpt.Tstart = time(1);
 DynOpt.Tend = time(end);
 DynOpt.tspan = [1, 1+DynOpt.Ts];
 
-%% model
+%%% MODEL PARAMETERS %%%%
 params.eps_coef = 1;
-params.bias = 10*pi/180; %from [deg/sec] to [rad/sec]
+params.bias = DynOpt.bias_enable*5*pi/180; %from [deg/sec] to [rad/sec]
+params.MagnetoBias = zeros(1,3);
+DynOpt.RPYbetweenMagSensors = [0; 0; pi/2];
+DynOpt.EulerAngleNoiseOnMag = 0*1e-2;
+DynOpt.fault_sim = struct.fault_sim;
 
 %%%%%% GYROSCOPE NOISE MODEL %%%%
-params.RW_var = 3e-4;
+params.RW_var = 1*3e-3;
 params.RW_mean = 0;
 DynOpt.RW_mem = zeros(DynOpt.Niter,1);
 params.mu_bias = 0;
 
-%% PARAMETERS %%
-% simulation fault
-DynOpt.fault_sim = struct.fault_sim;
-
+%%% PARAMETERS TO RECONSTRUCT %%%
 % uncomment to estimate inertia
 % DynOpt.param_estimate = [params.sat(1).I(1,1), params.sat(1).I(2,2), params.sat(1).I(3,3)];
 
 % uncomment to estimate gyro bias
 DynOpt.param_estimate = params.bias;
-DynOpt.bias_dyn = 1;
 
 % uncomment to estimate mass
 % DynOpt.param_estimate = params.sat(1).M;
+
+%%%%%%%%%% GENERAL STUFF %%%%%%%%%
+% DynOpt.param_estimate = [params.bias, params.sat(1).I(1,1), params.sat(1).I(2,2), params.sat(1).I(3,3)];
 %%%%%%%%%%%%%%%%%
 
-% old vars
-% DynOpt.magnetoBias = zeros(3,1);
-% DynOpt.gyroBias = zeros(3,1);
-DynOpt.RPYbetweenMagSensors = [0; 0; pi/2];
+%% UPDATE AND INIT %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                     INITIALIZATION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% update and init
 params.param_estimate = DynOpt.param_estimate;
 DynOpt.param_estimate_init = DynOpt.param_estimate;
 
@@ -93,28 +93,39 @@ DynOpt.params.input_flag = params.Control;
 % nparams
 DynOpt.nparams = length(DynOpt.param_estimate);
 
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                     INITIALIZATION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Initialization of output arrays
+%%%%%%%%% Initialization scripts %%%%%%%%%%
 OutputInitialization_V2_3;
-
 if params.Observer    
     [ObserverTest, Agent] = SetObserver_v1_1(1, length(DynOpt.time), satellites_iner_ECI, satellites_attitude, params); 
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% check attitude motion 
+%%%%% set orbital position %%%%%
+params.SatellitesCoordinates = satellites_iner_ECI;
+params.SatellitesAttitude = satellites_attitude;
+
+%%%%%%%% init magnetic field %%%%%%%%
+myutc = [2019 12 15 10 20 36]; %CHANGE THIS...??
+LatLongAlt = eci2lla(params.SatellitesCoordinates(1:3)'*1E3,myutc); %converto from ECI to latitude, longitude,  altitude
+[mag_field_vector,~,~,~,~] = igrfmagm(max(1000,min(LatLongAlt(3),6E5)),LatLongAlt(1),LatLongAlt(2),decyear(2019,12,15),13); %mag_field_vector is in nanotesla, by IGRF11-12
+DynOpt.mag_field_vector = mag_field_vector;
+
+%%%%% TEST ORC %%%%%
+% ChiefAttitude_VTEST;
+% params.SatellitesAttitude = satellites_attitude;
+
+
+%%%%% check attitude motion %%%%%
 params.Attitude = DynOpt.integration_att;
 params.DesiredAttitude = zeros(3,1);
 
-% check noise on attitude
+%%%%% check noise on attitude %%%%
 if DynOpt.noise_enable == 0
    ObserverTest.AttitudeZeroErrors = 1; 
 else
    ObserverTest.AttitudeZeroErrors = 0; 
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 

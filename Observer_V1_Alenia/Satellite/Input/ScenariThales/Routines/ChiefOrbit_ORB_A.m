@@ -22,7 +22,7 @@ ecc = 0.0001272;                                                        % chief'
 i = 98.1829*pi/180;                                                     % chief's orbit's mean inclination [rad]
 om = 85.7508*pi/180;                                                    % chief's orbit's mean argument of the perigee [rad]
 RAAN = 208.3314*pi/180;                                                 % chief's orbit's mean right ascension of the ascending node [rad]
-f_0 = 0*pi/180;                                                         % chief's mean true anomaly at time 0 [rad]
+f_0 = 1*pi/180;                                                         % chief's mean true anomaly at time 0 [rad]
 T = 86400/14.59196703335281;
 n = 2*pi/T;                                                             % chief's orbit's mean motion [rad/s]
 a = (mi/(n^2))^(1/3);                                                   % chief's orbit's mean semimajor axis [km]
@@ -37,3 +37,6 @@ params.chief_OOE = chief_OOE;
 
 % Conversion from chief's Osculating Orbital Elements to inertial coordinates expressed in ECI reference frame and storing into satellites_iner_ECI
 satellites_iner_ECI = coe2rv_V1_1(chief_OOE(1:6), mi);
+
+%%%% TEST %%%%
+% satelites_iner_ECI(1:3) = [6.240434756872687; 3.341480890260273; 0.141274692345959];

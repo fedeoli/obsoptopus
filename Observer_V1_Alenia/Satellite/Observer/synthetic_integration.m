@@ -68,7 +68,7 @@ if(DynOpt.simulationModel == 1)
             end
         end
         
-        DynOpt.dx_true(:,i) = AttitudeDynamics_bias_v2(x_start(:,i),params);
+%         DynOpt.dx_true(:,i) = AttitudeDynamics_bias_v2(x_start(:,i),params);
 
     end
     
@@ -101,7 +101,10 @@ if(DynOpt.simulationModel == 1)
     end    
     
     % store quaternions in euler angles
-    DynOpt.True_quat = wrapTo2Pi(RotationConversion_V2_1('QtoEA321', DynOpt.attitude_state(1:4,:)')*pi/180)';
+    DynOpt.True_quat = unwrap(RotationConversion_V2_1('QtoEA321', DynOpt.attitude_state(1:4,:)')*pi/180)';
+    
+    %%%%%%% STORE MEASUREMENTS %%%%%
+    DynOpt.eps_noise_story = DynOpt.measure_amp*randn(length(params.observed_state),DynOpt.Niter);
     
     % set synthetic data flag
     DynOpt.synthetic_int = 0;
