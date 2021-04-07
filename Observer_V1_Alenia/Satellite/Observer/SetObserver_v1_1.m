@@ -20,7 +20,7 @@ end
 
 %%%%%% FLAG + NOISE SETUP %%%%%%%
 % Position Observer flags
-ObserverTest.ObserverON = 1;
+ObserverTest.ObserverON = 0;
 % GPS flags
 ObserverTest.GPSopt_flag = 0;
 ObserverTest.StartSoonUWB = 0; % set to 1 if only GPS optimization is set
@@ -87,7 +87,7 @@ ObserverTest.time_step = params.time_step;
 InitialConditionPercentageMatrix = diag(ObserverTest.IntialConditionPercentage);
 ObserverTest.satellites_iner_ECI_0 = satellites_iner_ECI;
 ObserverTest.satellites_attitude_0 = satellites_attitude;
-for k = 1:ObserverTest.Nagents,
+for k = 1:ObserverTest.Nagents
     ObserverTest.iner_ECI_0(k,:) = ObserverTest.satellites_iner_ECI_0(1+(k-1)*6:6+(k-1)*6); %initial position state
     ObserverTest.attitude_0(k,:) = ObserverTest.satellites_attitude_0(1+(k-1)*7:7+(k-1)*7); %initial attitude
     ObserverTest.attitude_0(k,1:4) = quatnormalize(ObserverTest.attitude_0(k,1:4));
@@ -175,7 +175,7 @@ for k = 1:ObserverTest.Nagents
     Agent(k).GPSpeed(:,1) = myGPSpeed;
     Agent(k).GPSopt(:,1) = myGPS;
     Agent(k).GPSpeedOpt(:,1) = Agent(k).GPSpeed(:,1);
-    for jj=1:3,
+    for jj=1:3
         Agent(k).GPSfilter([1 2] + (jj-1)*2,1) = pinv(eye(2)-ObserverTest.FilterAposition)*ObserverTest.FilterBposition*myGPS(jj);
     end
     Agent(k).SuccessfullyReceivedData = ones((ObserverTest.UWB_StepsBackInTime+1)*ObserverTest.WindowStepMultiplier,ObserverTest.Nagents);
@@ -226,8 +226,8 @@ for k = 1:ObserverTest.Nagents
 end
 
 %initialization of the data collected by the network
-for k = 1:ObserverTest.Nagents,
-    for jj=1:ObserverTest.Nagents,
+for k = 1:ObserverTest.Nagents
+    for jj=1:ObserverTest.Nagents
         if(ObserverTest.TrasmittedTruePositions==1)
             temp = Agent(jj).iner_ECI(1:3,1);
         else

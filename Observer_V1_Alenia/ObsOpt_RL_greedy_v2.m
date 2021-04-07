@@ -11,12 +11,12 @@ function RL = ObsOpt_RL_greedy_v2(Nsearch)
     %%% Define Environment domain %%
     RL.E.domain_T = [200, 200];
     RL.E.domain_freq = 1./RL.E.domain_T;
-    RL.E.domain_target = [pi/4*ones(3,1), pi/4*ones(3,1)];
+    RL.E.domain_target = [-pi*ones(3,1), pi*ones(3,1)];
     RL.E.domain_status = [0.5.*RL.E.domain_target(:,2), 1.5.*RL.E.domain_target(:,2); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
 
     %%% Define actions domain %%
     % Amplitude 
-    RL.A.domain_amp = [0, pi/4];
+    RL.A.domain_amp = [0, pi/2];
     RL.A.amp_ts = 1e-1;
     RL.A.domain_amp_grid = RL.A.domain_amp(1):RL.A.amp_ts:RL.A.domain_amp(2);
     % duty cycle
