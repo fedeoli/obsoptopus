@@ -17,7 +17,8 @@ function coe = rv2coe_V1_1(vect_r, vect_v, mi)
 %   20190301 V1_1:
 %   -  First Release
 
-
+% define for C code
+vect_h = zeros(3,1);
 
 % Computation of orbital angular momentum  vect_h = vect_r x vect_v
 vect_h(1) = vect_r(2)*vect_v(3) - vect_r(3)*vect_v(2);
@@ -36,6 +37,10 @@ vel_square = (vect_v(1)^2 + vect_v(2)^2 + vect_v(3)^2);
 
 % Scalar product between position and velocity vectors
 rv = vect_r(1)*vect_v(1) + vect_r(2)*vect_v(2) + vect_r(3)*vect_v(3);
+
+% define for C code
+vect_e = zeros(3,1);
+coe = zeros(1,6);
 
 % Computation of the eccentricity vector
 E = vel_square - mi/r;

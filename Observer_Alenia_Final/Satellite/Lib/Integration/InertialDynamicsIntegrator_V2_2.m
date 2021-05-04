@@ -34,8 +34,6 @@ function dx = InertialDynamicsIntegrator_V2_2(satellites_iner_ECI, params)
 %   20200521 V2_2:
 %   - The drag acceleration computation is now independant from the satellites' attitude parameters if the params.Attitude flag is set to zero
 
-global  fh_c r_c h_c fd_c 
-
 % Extraction of constants from "params" structure
 mi = params.mi;             % Earth's planetary constant
 Re = params.Re;             % Earth's equatorial mean radius
@@ -136,12 +134,12 @@ for i = 1:n_sat
 end
 
 
-r_c = p(1)/(1 + coe(2)*cos(coe(6)));
-h_c = sqrt(mi*p(1));
-fd_c = fd_ECI(:,1);
-TotalPerturbation_ECI = [(fj2_ECI(1,1) + fd_c(1)), (fj2_ECI(2,1) + fd_c(2)), (fj2_ECI(3,1) + fd_c(3))];                             % Sum of perturbation expressed in ECI reference frame
+params.r_c = p(1)/(1 + coe(2)*cos(coe(6)));
+params.h_c = sqrt(mi*p(1));
+params.fd_c = fd_ECI(:,1);
+TotalPerturbation_ECI = [(fj2_ECI(1,1) + params.fd_c(1)), (fj2_ECI(2,1) + params.fd_c(2)), (fj2_ECI(3,1) + params.fd_c(3))];                             % Sum of perturbation expressed in ECI reference frame
 TotalPerturbation_LVLH = ECI2LVLH_V1_1(TotalPerturbation_ECI, coe(3), coe(5), (coe(4) + coe(6)));                                   % Sum of perturbations expressed in LVLH reference frame
-fh_c = TotalPerturbation_LVLH(3);
+params.fh_c = TotalPerturbation_LVLH(3);
 
 
 end

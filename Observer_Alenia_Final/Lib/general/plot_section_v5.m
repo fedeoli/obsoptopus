@@ -3,31 +3,57 @@ function plot_section_v5(DynOpt,params)
 
     %% plant test
 
-    if 0 && (DynOpt.integration_pos == 1)
-        figure(1)
-        hold on
-        grid on
+    if DynOpt.ObserverOn == 0
+        if  0 && (DynOpt.integration_pos == 1)
+            figure(1)
+            hold on
+            grid on
 
-        title('Fleet trajectories')
-        xlabel('x Km')
-        ylabel('y Km')
-        zlabel('z Km')
+            title('Fleet trajectories')
+            xlabel('x Km')
+            ylabel('y Km')
+            zlabel('z Km')
 
-        nagent = params.Nagents;
+            nagent = params.Nagents;
 
-        % real trajectories
-        for i = 1:nagent
-            color = [rand rand rand];
-            style_real = '.';
-            linewidth = 1;
+            % real trajectories
+            for i = 1:nagent
+                color = [rand rand rand];
+                style_real = '.';
+                linewidth = 1;
 
-            Chi = DynOpt.position_state(1+6*(i-1):3+6*(i-1),:);
-            xreal = Chi(1,:);
-            yreal = Chi(2,:);
-            zreal = Chi(3,:);
-            plot3(xreal,yreal,zreal,style_real,'MarkerFaceColor',color);
-            plot3(xreal(1),yreal(1),zreal(1),'bo')
-            plot3(xreal(end),yreal(end),zreal(end),'bo')
+                Chi = DynOpt.position_state(1+6*(i-1):3+6*(i-1),:);
+                xreal = Chi(1,:);
+                yreal = Chi(2,:);
+                zreal = Chi(3,:);
+                plot3(xreal,yreal,zreal,style_real,'MarkerFaceColor',color);
+                plot3(xreal(1),yreal(1),zreal(1),'bo')
+                plot3(xreal(end),yreal(end),zreal(end),'bo')
+            end
+        end
+        
+        % Attitude
+        % EULER ANGLES FORM
+        if 1
+            start = 1;
+            stop = 3;
+            offset = 0;
+            figure('Name','Attitude estimate - Euler angles')
+            for k=start:stop
+                n_subplot = 3;
+                ax_index = k-offset;
+                ax(ax_index)=subplot(n_subplot,1,ax_index);
+                hold on
+                % results
+                plot(DynOpt.time,DynOpt.True_quat(k,:),':','LineWidth' ,2);
+                % reference
+                plot(DynOpt.time(1:length(DynOpt.desatt_true(k,:))),DynOpt.desatt_true(k,:),'r--','LineWidth' ,2);
+                ylabel(strcat('X_',num2str(k),' [rad]'));
+                xlabel('simulation time [s]')
+                grid on
+                legend('state','ref')
+            end
+            linkaxes(ax,'x');
         end
     end
 
@@ -43,7 +69,13 @@ function plot_section_v5(DynOpt,params)
                     n_subplot = 3;
                     ax(ax_index)=subplot(n_subplot,1,ax_index);
                     hold on
-                    plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    
+                    try
+                        plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    catch
+                        plot(DynOpt.time,DynOpt.OptXstory(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    end
+                    
                     ylabel(strcat('X_',num2str(k),' [Km]'));
                     xlabel('simulation time [s]')
                     grid on
@@ -58,7 +90,11 @@ function plot_section_v5(DynOpt,params)
                     ax_index = k-3;
                     ax(ax_index)=subplot(n_subplot,1,ax_index);
                     hold on
-                    plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    try
+                        plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    catch
+                        plot(DynOpt.time,DynOpt.OptXstory(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    end
                     ylabel(strcat('X_',num2str(k),' [Km]'));
                     xlabel('simulation time [s]')
                     grid on
@@ -87,7 +123,11 @@ function plot_section_v5(DynOpt,params)
                     ax(ax_index)=subplot(n_subplot,1,ax_index);
                     hold on
                     % results
-                    plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    try
+                        plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    catch
+                        plot(DynOpt.time,DynOpt.OptXstory(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    end
                     ylabel(strcat('X_',num2str(k)));
                     xlabel('simulation time [s]')
                     grid on
@@ -108,9 +148,13 @@ function plot_section_v5(DynOpt,params)
                         ax(ax_index)=subplot(n_subplot,1,ax_index);
                         hold on
                         % results
-                        plot(DynOpt.time,DynOpt.Opt_quat_runtime(k,:),'-',DynOpt.time,DynOpt.True_quat(k,:),':','LineWidth' ,2);
+                        try
+                            plot(DynOpt.time,DynOpt.Opt_quat_runtime(k,:),'-',DynOpt.time,DynOpt.True_quat(k,:),':','LineWidth' ,2);
+                        catch
+                            plot(DynOpt.time,DynOpt.Opt_quat(k,:),'-',DynOpt.time,DynOpt.True_quat(k,:),':','LineWidth' ,2);
+                        end
                         % reference
-%                         plot(DynOpt.time(1:length(DynOpt.desatt_true(k,:))),DynOpt.desatt_true(k,:),'r--','LineWidth' ,2);
+                        plot(DynOpt.time(1:length(DynOpt.desatt_true(k,:))),DynOpt.desatt_true(k,:),'r--','LineWidth' ,2);
                         ylabel(strcat('X_',num2str(k),' [rad]'));
                         xlabel('simulation time [s]')
                         grid on
@@ -135,7 +179,11 @@ function plot_section_v5(DynOpt,params)
                     ax_index = k-offset;
                     ax(ax_index)=subplot(n_subplot,1,ax_index);
                     hold on
-                    plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    try
+                        plot(DynOpt.time,DynOpt.OptXstory_runtime(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    catch
+                        plot(DynOpt.time,DynOpt.OptXstory(k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((k),:),':','LineWidth' ,2);
+                    end
                     ylabel(strcat('w_',num2str(k),' [rad/s]'));
                     xlabel('simulation time [s]');
                     grid on
@@ -152,7 +200,11 @@ function plot_section_v5(DynOpt,params)
                 ax_index = k;
                 ax(ax_index)=subplot(n_subplot,1,ax_index);
                 hold on
-                plot(DynOpt.time,DynOpt.OptXstory_runtime(DynOpt.StateDim+k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((DynOpt.StateDim+k),:),':','LineWidth' ,2);
+                try
+                    plot(DynOpt.time,DynOpt.OptXstory_runtime(DynOpt.StateDim+k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((DynOpt.StateDim+k),:),':','LineWidth' ,2);
+                catch
+                    plot(DynOpt.time,DynOpt.OptXstory(DynOpt.StateDim+k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((DynOpt.StateDim+k),:),':','LineWidth' ,2);
+                end
                 ylabel(strcat('P_',num2str(k),' [Kg m^2]'));
                 xlabel('simulation time [s]');
                 grid on
@@ -174,7 +226,11 @@ function plot_section_v5(DynOpt,params)
                 OptTime = DynOpt.time(DynOpt.opt_chosen_time);
                 plot(WindowTime,DynOpt.Y_full_story(k,DynOpt.temp_time),'s','LineWidth',2,'MarkerSize',5);
                 plot(OptTime,DynOpt.Y_full_story(k,DynOpt.opt_chosen_time),'r+','LineWidth',2,'MarkerSize',5);
-                plot(DynOpt.time,DynOpt.OptXstory_runtime(params.observed_state(k),:),'--','LineWidth',2)
+                try
+                    plot(DynOpt.time,DynOpt.OptXstory_runtime(params.observed_state(k),:),'--','LineWidth',2)
+                catch
+                    plot(DynOpt.time,DynOpt.OptXstory(params.observed_state(k),:),'--','LineWidth',2)
+                end
                 plot(DynOpt.time,DynOpt.OptXstoryTRUE(params.observed_state(k),:).^DynOpt.measure_exp ,'b-','LineWidth',2)
                 ylabel(strcat('w_',num2str(k),' [rad/s]'));
                 xlabel('simulation time [s]');

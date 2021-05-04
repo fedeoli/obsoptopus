@@ -18,6 +18,9 @@ function vect_ECI = LVLH2ECI_V1_1(vect_LVLH, incl, raan, th)
 %   20190301 V1_1:
 %   -  First Release
 
+% define for C code
+C = zeros(3);
+
 % Computation of the rotation matrix
 C(1,1) = cos(raan)*cos(th) - sin(raan)*cos(incl)*sin(th);
 C(1,2) = -cos(raan)*sin(th) - sin(raan)*cos(incl)*cos(th);

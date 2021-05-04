@@ -1,0 +1,40 @@
+%% signal information policy
+function [DynOpt, params] = dJ_cond_v2_function(DynOpt,params,theta,beta,gamma)
+    
+    if DynOpt.ActualTimeIndex > 2
+    
+        % position
+        pos = DynOpt.ActualTimeIndex;
+        
+        % temp buffers
+        Y_temp = DynOpt.Y_full_story(:,1:pos-1);
+        dY_temp = DynOpt.dY_full_story(:,1:pos-1);
+        Yint_temp = DynOpt.intY_full_story(:,1:pos-1);
+
+        Yhat_temp = DynOpt.Yhat_full_story(:,1:pos-1);
+        dYhat_temp = DynOpt.dYhat_full_story(:,1:pos-1);
+        Yint_hat_temp = DynOpt.intYhat_full_story(:,1:pos-1);
+
+        % condition with error
+        w = 5;
+        mode = 'back';
+        pos = size(Y_temp,2);
+        DynOpt.e = abs(mean(moving_average_single(Y_temp-Yhat_temp,w,pos,mode)));
+        DynOpt.e_dot = abs(mean(moving_average_single(dY_temp-dYhat_temp,w,pos,mode)));
+
+        initial_pos = min(w,size(Yint_temp,2)-1);
+        temp_e_int = zeros(1,DynOpt.dim_out);
+        for i=1:DynOpt.dim_out
+            int_arg = abs((Yint_temp(i,end-initial_pos:end)-Yint_hat_temp(i,end-initial_pos:end)));
+            temp_e_int(i) = trapz(DynOpt.Ts,int_arg);
+        end
+        DynOpt.e_int = abs(mean(temp_e_int));
+
+        DynOpt.e_mesh = theta*DynOpt.e + beta*DynOpt.e_dot + gamma*DynOpt.e_int;
+        DynOpt.dJ_cond = mean(abs(DynOpt.e_mesh));
+        DynOpt.dJ_cond_story(:,end+1) = [DynOpt.e; DynOpt.e_dot; DynOpt.e_int; DynOpt.dJ_cond];
+    else
+        DynOpt.dJ_cond = 0;
+        DynOpt.dJ_cond_story(:,end+1) = [0; 0; 0; DynOpt.dJ_cond];
+    end
+end

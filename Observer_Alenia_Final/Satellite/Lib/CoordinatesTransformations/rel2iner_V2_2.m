@@ -25,9 +25,6 @@ function deputy_iner_ECI = rel2iner_V2_2(deputy_rel_LVLH, chief_iner_ECI, chief_
 %   20200523 V2_2:
 %   - The chief's cross section allocation name in the 'sat' structure has been changed from 'A' to 'MeanCrossSection'
 
-
-global fh_c r_c h_c
-
 % Extracting constants from "params" structure
 mi = params.mi;
 Re = params.Re;
@@ -43,6 +40,11 @@ raan = chief_coe(5);
 f = chief_coe(6);
 th = argp + f;
 
+% define for C code
+chief_pos_iner = zeros(3,1);
+chief_vel_iner = zeros(3,1);
+deputy_rel_ECI = zeros(3,1);
+
 % The orbital reference frame is the chief orbit's osculating reference frame, which also takes into account perturbations
 chief_pos_iner(1:3) = chief_iner_ECI(1:3);                                                                                  % chief's inertial position
 chief_vel_iner(1:3) = chief_iner_ECI(4:6);                                                                                  % chief's inertial velocity
@@ -50,13 +52,13 @@ deputy_rel_ECI(1:3) = LVLH2ECI_V1_1(deputy_rel_LVLH(1:3), incl, raan, th);      
 deputy_relpos_ECI = chief_pos_iner + deputy_rel_ECI(1:3);                                                                   % deputy's inertial position expressed in ECI reference frame
 
 p_c = a*(1 - e^2);                                                                                                          % chief's semilatum rectum
-r_c = p_c/(1 + e*cos(f));                                                                                                   % chief's position module
-h_c = sqrt(mi*p_c);                                                                                                         % chief's orbital angular momentum
+params.r_c = p_c/(1 + e*cos(f));                                                                                                   % chief's position module
+params.h_c = sqrt(mi*p_c);                                                                                                         % chief's orbital angular momentum
 
 % J2 perturbation
-f2r_c = -3/2*J2*mi*Re^2/(r_c^4)*(1 - (3*(sin(incl))^2*(sin(th))^2));                                                        % chief's J2 radial component
-f2th_c = -3/2*J2*mi*Re^2/(r_c^4)*(sin(incl))^2*sin(2*th);                                                                   % chief's J2 tangential component
-f2h_c = -3*J2*mi*Re^2/(r_c^4)*sin(incl)*cos(incl)*sin(th);                                                                  % chief's J2 out-of-plane component
+f2r_c = -3/2*J2*mi*Re^2/(params.r_c^4)*(1 - (3*(sin(incl))^2*(sin(th))^2));                                                        % chief's J2 radial component
+f2th_c = -3/2*J2*mi*Re^2/(params.r_c^4)*(sin(incl))^2*sin(2*th);                                                                   % chief's J2 tangential component
+f2h_c = -3*J2*mi*Re^2/(params.r_c^4)*sin(incl)*cos(incl)*sin(th);                                                                  % chief's J2 out-of-plane component
 fj2_c = LVLH2ECI_V1_1([f2r_c, f2th_c, f2h_c], incl, raan, th);                                                              % chief's J2 perturbation
 
 % Drag perturbation
@@ -69,12 +71,15 @@ fd_c = RD*v_rel./norm(v_rel);                                                   
 % Total perturbation (sum of Drag and J2)
 pert_tot_ECI = [(fj2_c(1) + fd_c(1)), (fj2_c(2) + fd_c(2)), (fj2_c(3) + fd_c(3))];                                          % sum of the perturbations acting on the chief (expressed in ECI reference frame)
 pert_tot_LVLH = ECI2LVLH_V1_1(pert_tot_ECI, incl, raan, th);                                                                % sum of the perturbations acting on the chief (expressed in LVLH reference frame)
-fh_c = pert_tot_LVLH(3);                                                                                                    % out-of-plane component of the total perturbation acting on the chief
+params.fh_c = pert_tot_LVLH(3);                                                                                                    % out-of-plane component of the total perturbation acting on the chief
 
 % Deputy's relative velocity computation
-chief_omega_LVLH = [fh_c*r_c/h_c, 0, h_c/r_c^2];                                                                            % chief's orbital angular velocity in LVLH
+chief_omega_LVLH = [params.fh_c*params.r_c/params.h_c, 0, params.h_c/params.r_c^2];                                                                            % chief's orbital angular velocity in LVLH
 deputy_relvel_LVLH = deputy_rel_LVLH(4:6) + cross(chief_omega_LVLH, deputy_rel_LVLH(1:3));                                  % deputy's relative velocity (expressed in LVLH reference frame)
 deputy_relvel_ECI = chief_vel_iner' + LVLH2ECI_V1_1(deputy_relvel_LVLH, incl, raan, th);                                     % deputy's relative velocity (expressed in ECI reference frame)
+
+% define for C code
+deputy_iner_ECI = zeros(6,1);
 
 % Allocation of the output
 deputy_iner_ECI(1:3,1) = deputy_relpos_ECI;

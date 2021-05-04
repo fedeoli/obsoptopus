@@ -1,8 +1,9 @@
 function [ObserverTest, Agent] = SetObserver_v1_1(iteration,lengthtime,satellites_iner_ECI,satellites_attitude,params)
 %%load all observer parameters
-global ObserverTest Agent
+% global ObserverTest Agent
 
-load('ObserverTest.mat')
+S = load('ObserverTest.mat');
+ObserverTest = S.ObserverTest;
 
 %%%%%%%% 05/10 %%%%%%%
 ObserverTest.Nagents = params.Ndeputy + 1;
@@ -132,6 +133,9 @@ ObserverTest.Weight_UWB_back = ObserverTest.Weight_UWB_back*ObserverTest.Weight_
 ObserverTest.Weight_GPS_back =  ObserverTest.Weight_GPS_back*ObserverTest.Weight_GPS;
 ObserverTest.Weight_GPSall_back = ObserverTest.Weight_GPSall_back*ObserverTest.Weight_GPSall;
 
+% define for C coder
+Agent = struct();
+
 
 for k = 1:ObserverTest.Nagents
     
@@ -202,8 +206,8 @@ for k = 1:ObserverTest.Nagents
     Agent(k).magnetoBias(:,1) = ObserverTest.MagnetoBias;
     Agent(k).gyroBias(:,1) = ObserverTest.GyroBias;
     Agent(k).attitude(:,1) = ObserverTest.attitude_0(k,:)';
-    [MagTemp,MagTemp2,GyrosTemp] = AttitudeObserver_GetMeasures_v2_2(Agent(k).iner_ECI(1:3,1)',Agent(k).attitude(1:4,1)',...
-                                                                                                        Agent(k).attitude(5:7,1)',Agent(k).magnetoBias(:,1)',Agent(k).gyroBias(:,1)',ObserverTest.RPYbetweenMagSensors,0);
+    [MagTemp,MagTemp2,GyrosTemp] = AttitudeObserver_GetMeasures_v2_3(Agent(k).iner_ECI(1:3,1)',Agent(k).attitude(1:4,1)',...
+                                                                                                        Agent(k).attitude(5:7,1)',Agent(k).magnetoBias(:,1)',Agent(k).gyroBias(:,1)',ObserverTest.RPYbetweenMagSensors,0,ObserverTest);
     Agent(k).magneto(:,1) = MagTemp;
     Agent(k).magneto2(:,1) = MagTemp2;
     Agent(k).gyros(:,1) = GyrosTemp;
@@ -226,8 +230,8 @@ for k = 1:ObserverTest.Nagents
 end
 
 %initialization of the data collected by the network
-for k = 1:ObserverTest.Nagents,
-    for jj=1:ObserverTest.Nagents,
+for k = 1:ObserverTest.Nagents
+    for jj=1:ObserverTest.Nagents
         if(ObserverTest.TrasmittedTruePositions==1)
             temp = Agent(jj).iner_ECI(1:3,1);
         else
@@ -242,7 +246,10 @@ ObserverTest.CSI_X_meno = zeros(6,2*ObserverTest.Na+1);
 ObserverTest.W = zeros(2*ObserverTest.Na+1,1); % i loro pesi
 ObserverTest.UestimatorStory = zeros(3*(ObserverTest.Nagents-1),ObserverTest.Npassi);
 
+% define for C code
+coe = zeros(1,6);
 
+% assignment
 coe(1:6) = rv2coe_V1_1(Agent(1).xHatUKF(1:3,1),Agent(1).xHatUKF(4:6,1),params.mi);
 ObserverTest.EstimatedChiefCoe = coe;
 

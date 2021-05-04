@@ -1,8 +1,12 @@
 %% simulation data init
 
+% dependencies
+addpath(genpath([pwd '/Lib']));
+addpath(genpath([pwd '/Satellite']));
+
 % clear
 if exist('RL','var')
-    keep RL
+    keep RL s current_reward
 else
     clear
 end
@@ -13,164 +17,166 @@ addpath(genpath([pwd '/Lib']));
 addpath(genpath([pwd '/Satellite']));
 
 % simulation time
-struct.Tend = 100;
-struct.Ts = 1e0;
+setup.t_start = 0;
+setup.Tend = 200;
+setup.Ts = 1e0;
 
 % measurement dimension
-struct.nMagneto = 2;
-struct.RPYbetweenMagnetometers = 1*[0,0,90]*pi/180;
-struct.dim_out = 3+3*struct.nMagneto;
+setup.nMagneto = 2;
+setup.RPYbetweenMagnetometers = 1*[0,0,90]*pi/180;
+setup.dim_out = 3+3*setup.nMagneto;
 
 % plot and graphics
-struct.plot = 0;
-struct.print = 0;
-struct.RL = 0;
+setup.plot = 0;
+setup.print = 0;
+setup.RL = 0;
 
 % montecarlo or single simulation
-struct.montecarlo = 0;
+setup.montecarlo = 0;
 % set the bounds for the model generation
-if struct.montecarlo == 1
-    struct.lb_init = -1e-1*[1 1 1 1 1 1 1 1 1 1];
-    struct.ub_init = 1e0*[1 1 1 1 1 1 1 1 1 1];
+if setup.montecarlo == 1
+    setup.lb_init = -1e-1*[1 1 1 1 1 1 1 1 1 1];
+    setup.ub_init = 1e0*[1 1 1 1 1 1 1 1 1 1];
 end
 
 %%% integration %%%
-struct.integration_pos = 1;
-struct.integration_att = 1;
+setup.integration_pos = 1;
+setup.integration_att = 1;
 
 %%%%% OBSERVER %%%%%
-struct.generate_plant = 1;
-struct.generate_orbit = 0;
-struct.ObserverOn = 1;
-struct.Observer = 'OPT';
-struct.OptimisationOn = 1;
-struct.simulationModel = 1;
-struct.identify = 1;
-struct.check = 0;
-struct.fault_sim = 0;
-struct.flush_buffer = 0;
-struct.always_opt = 0;
-struct.control = 1;
-struct.optimise_input = 0;
-struct.input_tuning = 0;
+setup.generate_plant = 1;
+setup.generate_orbit = 0;
+setup.ObserverOn = 1;
+setup.Observer = 'OPT';
+setup.OptimisationOn = 1;
+setup.simulationModel = 1;
+setup.identify = 1;
+setup.check = 0;
+setup.fault_sim = 0;
+setup.flush_buffer = 0;
+setup.always_opt = 0;
+setup.optimise_input = 0;
+setup.input_tuning = 0;
 
 %%%%% OBSERVING INPUT %%%%%
-struct.u_amp = 1*pi/4;
-struct.d = 0.1;
-struct.T = 100;
-struct.u_freq = 1/struct.T;
-struct.target_attitude = 0*[1; 1; 1];
-struct.lowpass_pwm = 0;
+setup.control = 1;
+setup.u_amp = 1*pi/4;
+setup.d = 0.1;
+setup.T = 100;
+setup.u_freq = 1/setup.T;
+setup.target_attitude = 0*[1; 1; 1];
+setup.lowpass_pwm = 0;
 
 %%% FOR THE INTEGRATION TIME SEE SCNARIO_ORBITS_K.m %%%
 
 %%%%% SAMPLING %%%%%
-struct.w = 5;
-struct.Nts = 3;
-struct.theta = 0;
-struct.beta = 0;
-struct.gamma = 1;
+setup.w = 5;
+setup.Nts = 3;
+setup.theta = 0;
+setup.beta = 0;
+setup.gamma = 1;
 % conditions to consider the optimisation result
-struct.Jdot_thresh = 9e-1;
-struct.blue_flag = 0;
+setup.Jdot_thresh = 9e-1;
+setup.blue_flag = 0;
 % built in/gradient optimisation conditions
-struct.J_thresh = [1e-10, 1e3];
-struct.max_iter = 40;
-struct.maxFcount = Inf;
-struct.safety_density = 5;
+setup.J_thresh = [1e-10, 1e3];
+setup.max_iter = 20;
+setup.maxFcount = Inf;
+setup.safety_density = Inf;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-struct.dJ_1 = 5e-3;
-struct.dJ_2 = 1e-3;
+setup.adaptive = 1;
+setup.dJ_2 = setup.adaptive*5e-3;
+setup.dJ_1 = setup.adaptive*1e-3;
 
 %%%%% SCALE FACTOR %%%%%
-struct.y_end = 3;
-struct.nJ_nl = 2;
+setup.y_end = 3;
+setup.nJ_nl = 2;
 %%%% bias values %%%%%
-struct.scale_factor_init = 1e0.*[1;1e-1;1e-2;0;5e-1].*ones(struct.y_end+struct.nJ_nl,struct.dim_out);
+setup.scale_factor_init = 1e0.*[1;1e-1;5e-2;0;1e0].*ones(setup.y_end+setup.nJ_nl,setup.dim_out);
 % memory factor
-% struct.lambda = [0.8; 1; 0.7; 1; 1];
-struct.lambda = 1*[1; 1; 1; 1; 1];
-struct.y_weight = [1*ones(1,3) 1*ones(1,3*struct.nMagneto)];
-struct.scale_factor = zeros(struct.w,struct.y_end+struct.nJ_nl,struct.dim_out);
-for z = 1:struct.w
-    struct.scale_factor(struct.w+1-z,:,:) = struct.scale_factor_init.*struct.lambda.^(z-1);
+% setup.lambda = [0.8; 1; 0.7; 1; 1];
+setup.lambda = 1*[1; 1; 1; 1; 1];
+setup.y_weight = [1*ones(1,3) 1*ones(1,3*setup.nMagneto)];
+setup.scale_factor = zeros(setup.w,setup.y_end+setup.nJ_nl,setup.dim_out);
+for z = 1:setup.w
+    setup.scale_factor(setup.w+1-z,:,:) = setup.scale_factor_init.*setup.lambda.^(z-1);
 end
-for z = 1:struct.dim_out
-    struct.scale_factor(:,:,z) = struct.scale_factor(:,:,z)*struct.y_weight(z);
+for z = 1:setup.dim_out
+    setup.scale_factor(:,:,z) = setup.scale_factor(:,:,z)*setup.y_weight(z);
 end
 clear z
 
 % optimisation
-struct.fcon_flag = 0;
-if struct.fcon_flag == 1
-    struct.fmin = @fmincon;
+setup.fcon_flag = 0;
+if setup.fcon_flag == 1
+    setup.fmin = @fmincon;
 else
-    struct.fmin = @fminsearch;
+    setup.fmin = @fminsearch;
 end
 % state bounds
-struct.lb = 1*[-Inf -Inf -Inf -Inf -Inf -Inf -Inf 0];
-struct.ub = 1*[Inf Inf Inf Inf Inf Inf Inf Inf];
+setup.lb = 1*[-Inf -Inf -Inf -Inf -Inf -Inf -Inf 0];
+setup.ub = 1*[Inf Inf Inf Inf Inf Inf Inf Inf];
 
 % global search solutions
-struct.globalsearch = 0;
-struct.multistart = 0;
-struct.nstart = 5;
+setup.globalsearch = 0;
+setup.multistart = 0;
+setup.nstart = 5;
 
 %%%%% GRADIENT DESCENT %%%%%
-struct.alpha_grad = 1e-11;
-struct.grad_thresh = 1e-5;
-struct.alpha_dyn = 1;
+setup.alpha_grad = 1e-11;
+setup.grad_thresh = 1e-5;
+setup.alpha_dyn = 1;
 
 %%%%% INTEGRATION %%%%%
-struct.forward = 1;
+setup.forward = 1;
 
 %%%%% BIAS %%%%%
-struct.bias_dyn = 0;
-struct.bias_enable = 0;
-struct.bias_mag_enable = 0;
-struct.optimise_params = 1;
-struct.nbias = 0;
-struct.nparams = 3;
-struct.inertia = 1;
+setup.bias_dyn = 0;
+setup.bias_enable = 0;
+setup.bias_mag_enable = 0;
+setup.optimise_params = 1;
+setup.nbias = 0;
+setup.nparams = 0;
+setup.inertia = 0;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-struct.noise_enable = 1;
-struct.ErrorOnEA = 1;
-struct.rand_init = 0;
+setup.noise_enable = 0;
+setup.ErrorOnEA = 1;
+setup.rand_init = 0;
 % bias
-if struct.bias_enable 
-    struct.bias = 1*ones(3,1)*5*pi/180; 
+if setup.bias_enable 
+    setup.bias = 1*ones(3,1)*5*pi/180; 
 else
-    struct.bias = zeros(3,1);
+    setup.bias = zeros(3,1);
 end
-if struct.bias_mag_enable 
-    struct.bias_mag = 1*abs(1e-4*randn(3*struct.nMagneto,1)+1e-3);
+if setup.bias_mag_enable 
+    setup.bias_mag = 1*abs(1e-4*randn(3*setup.nMagneto,1)+1e-3);
 else
-    struct.bias_mag = zeros(3*struct.nMagneto,1);
+    setup.bias_mag = zeros(3*setup.nMagneto,1);
 end
-struct.bias_tot = struct.bias;
+setup.bias_tot = setup.bias;
 
 % measures
-struct.EulerAngleNoiseOnMag = 0*struct.noise_enable*1e-2;
-struct.noise_amp = 1*struct.noise_enable*[1*1e-4*ones(3,1); 1*1e-4*ones(3*struct.nMagneto,1)];
+setup.EulerAngleNoiseOnMag = 0*setup.noise_enable*1e-2;
+setup.noise_amp = 1*setup.noise_enable*[1*1e-4*ones(3,1); 1*1e-4*ones(3*setup.nMagneto,1)];
 %%%% STATE %%%%
-if struct.integration_pos == 1 && struct.integration_att == 1
+if setup.integration_pos == 1 && setup.integration_att == 1
     % POS + ATT
-    struct.init_error_amp = 1*struct.noise_enable*[0*ones(3,1); 0*ones(3,1); 40*ones(4,1); 10*ones(3,1)];
-elseif struct.integration_pos == 1 && struct.integration_att == 0
+    setup.init_error_amp = 1*setup.noise_enable*[0*ones(3,1); 0*ones(3,1); 20*ones(4,1); 5*ones(3,1)];
+elseif setup.integration_pos == 1 && setup.integration_att == 0
     % POS
-    struct.init_error_amp = 1*struct.noise_enable*[1e1*ones(3,1); 5e-1*ones(3,1)];
+    setup.init_error_amp = 1*setup.noise_enable*[1e1*ones(3,1); 5e-1*ones(3,1)];
 else
     % ATT (errors in percentage)
-    struct.init_error_amp = 1*struct.noise_enable*[40*ones(4,1); 10*ones(3,1)];
+    setup.init_error_amp = 1*setup.noise_enable*[40*ones(4,1); 10*ones(3,1)];
 end
 %%%% PARAMS %%%%
-struct.ParamsAllPos = 1;
-struct.init_param_error_amp = 1*struct.noise_enable*ones(1,struct.nparams)*50;
+setup.ParamsAllPos = 1;
+setup.init_param_error_amp = 1*setup.noise_enable*ones(1,setup.nparams)*50;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%% MODEL %%%%%
-struct.model = 'satellite';
+setup.model = 'satellite';

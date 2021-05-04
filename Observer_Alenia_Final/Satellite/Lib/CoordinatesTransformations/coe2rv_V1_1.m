@@ -30,6 +30,10 @@ r = p/(e*cos(f)+1);                                                             
 hr = sqrt(mi*p)/r;                                                              % satellite's orbital angular momentum over radius
 vr = hr*e*sin(f)/p;                                                             % radial component of satellite's velocity    
 
+% define for C code
+vect_r = zeros(1,3);
+vect_v = zeros(1,3);
+
 % Computation of satellite's position
 vect_r(1) = r*(cos(th)*cos(raan) - sin(th)*sin(raan)*cos(incl));
 vect_r(2) = r*(cos(th)*sin(raan) + sin(th)*cos(raan)*cos(incl));

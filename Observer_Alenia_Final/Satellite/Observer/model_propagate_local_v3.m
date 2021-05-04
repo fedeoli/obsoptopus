@@ -1,7 +1,5 @@
 %% model propagation
-function [x_propagate, params_out] = model_propagate_local_v3(time_instant,time_step,x_start,params)
-
-    global DynOpt
+function [x_propagate, params_out, DynOpt] = model_propagate_local_v3(DynOpt,time_instant,time_step,x_start,params)
     
     % set current_pos
     DynOpt.current_pos = time_instant;
@@ -13,9 +11,9 @@ function [x_propagate, params_out] = model_propagate_local_v3(time_instant,time_
         % current attitude 
         temp_att = params.SatellitesAttitude;
         % set input
-        params = DynOpt.set_input(time_instant,temp_att,x_start(1:6),params);
+        [params,DynOpt] = DynOpt.set_input(DynOpt,time_instant,temp_att,x_start(1:6),params);
         % propagate
-        temp_pos = rk4_V1_1(DynOpt.model, tspan, x_start(1:6), params);
+        [temp_pos,DynOpt] = rk4_V1_1_function(DynOpt.model, tspan, x_start(1:6), params,DynOpt);
         % wrap and update
         x_propagate = [temp_pos(:,end); x_start(end-(length(DynOpt.param_estimate)-1):end)];
         params.SatellitesCoordinates = temp_pos(:,end);
@@ -23,29 +21,29 @@ function [x_propagate, params_out] = model_propagate_local_v3(time_instant,time_
         % current orbit %
         temp_pos = params.SatellitesCoordinates;
         % set input
-        params = DynOpt.set_input(time_instant,x_start(1:7),temp_pos,params);
+        [params,DynOpt] = DynOpt.set_input(DynOpt,time_instant,x_start(1:7),temp_pos,params);
         % propagate attitude
         if DynOpt.bias_dyn == 0
-            temp_att = rk4_V1_1(DynOpt.model, tspan, x_start(1:7), params);
+            [temp_att,DynOpt] = rk4_V1_1_function(DynOpt.model, tspan, x_start(1:7), params, DynOpt);
             x_propagate = [temp_att(:,end); x_start(end-(length(DynOpt.param_estimate)-1):end)];
         else
-            temp_att = rk4_V1_1(DynOpt.model, tspan, x_start(1:end), params);
+            [temp_att,DynOpt] = rk4_V1_1(DynOpt.model, tspan, x_start(1:end), params, DynOpt);
             x_propagate = [temp_att(:,end); x_start(end-(length(DynOpt.param_estimate)-2):end)];
         end  
         % wrap and update
         params.SatellitesAttitude = temp_att(:,end);
     elseif DynOpt.integration_pos == 1 && DynOpt.integration_att == 1
         % set input
-        params = DynOpt.set_input(time_instant,x_start(7:13),x_start(1:6),params);
+        [params,DynOpt] = DynOpt.set_input(DynOpt,time_instant,x_start(7:13),x_start(1:6),params);
         % propagate orbit
-        temp_pos = rk4_V1_1(DynOpt.model_inertial, tspan, x_start(1:6), params);
+        [temp_pos,DynOpt] = rk4_V1_1_function(DynOpt.model_inertial, tspan, x_start(1:6), params,DynOpt);
         params.SatellitesCoordinates = temp_pos(:,end);
         % propagate attitude
         if DynOpt.bias_dyn == 0
-            temp_att = rk4_V1_1(DynOpt.model, tspan, x_start(7:13), params);
+            [temp_att,DynOpt] = rk4_V1_1_function(DynOpt.model, tspan, x_start(7:13), params,DynOpt);
             x_propagate = [temp_pos(:,end); temp_att(:,end); x_start(end-(length(DynOpt.param_estimate)-1):end)];
         else
-            temp_att = rk4_V1_1(DynOpt.model, tspan, x_start(7:end), params);
+            [temp_att,DynOpt] = rk4_V1_1_function(DynOpt.model, tspan, x_start(7:end), params,DynOpt);
             x_propagate = [temp_pos(:,end); temp_att(:,end)];
         end  
         % wrap and update

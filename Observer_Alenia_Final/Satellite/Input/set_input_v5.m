@@ -1,7 +1,5 @@
 %% Set input function
-function params_out = set_input_v5(pos,x_att,x_pos,params)
-
-    global DynOpt
+function [params_out,DynOpt] = set_input_v5(DynOpt,pos,x_att,x_pos,params)
     
     % system control input
     if DynOpt.params.input_flag == 1
