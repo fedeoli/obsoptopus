@@ -12,7 +12,7 @@ function Y_noise = noise_model_v1(Y_true,DynOpt,params)
     end
     
     % measurement noise
-    DynOpt.measure_noise = DynOpt.eps_noise_story(:,DynOpt.ActualTimeIndex);
+    DynOpt.measure_noise = DynOpt.eps_noise_story(:,DynOpt.Niter);
 %     eps_noise = [DynOpt.measure_noise.*ones(length(params.observed_state),1); zeros(DynOpt.dim_out-length(params.observed_state),1)];
     eps_noise = DynOpt.measure_noise;
     

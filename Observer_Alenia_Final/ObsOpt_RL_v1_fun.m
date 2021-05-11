@@ -239,12 +239,12 @@ if DynOpt.ObserverOn == 1
         DynOpt.measure_exp = 1;
 
         % corrupted trajectory
-        DynOpt.Xstory = zeros(length(DynOpt.X),length(DynOpt.time));
+%         DynOpt.Xstory = zeros(length(DynOpt.X),length(DynOpt.time));
         DynOpt.Xstory(:,1) = DynOpt.X_init;
 
         % optimised trajectory
-        DynOpt.OptXstory = zeros(length(DynOpt.X),length(DynOpt.time));
-        DynOpt.OptXstory_runtime = zeros(length(DynOpt.X),length(DynOpt.time));
+%         DynOpt.OptXstory = zeros(length(DynOpt.X),length(DynOpt.time));
+%         DynOpt.OptXstory_runtime = zeros(length(DynOpt.X),length(DynOpt.time));
         DynOpt.OptXstory(:,1) = DynOpt.X;
         DynOpt.OptXstory_runtime(:,1) = DynOpt.X;
 
@@ -314,8 +314,8 @@ if DynOpt.ObserverOn == 1
     DynOpt.TolExit_X = 1e-10;
     DynOpt.outfun = @outputfcn;
     % define cost functions and measurements
-    DynOpt.cost_function = @cost_function_v8;
-    DynOpt.cost_function_name = 'cost_function_v8';
+    DynOpt.cost_function = @cost_function_v9;
+    DynOpt.cost_function_name = 'cost_function_v9';
     if strcmp(struct.Observer,'EKF')
         DynOpt.get_measure = @get_measure_v5_function;
         DynOpt.get_measure_name = 'get_measure_v5';
@@ -369,6 +369,45 @@ if DynOpt.ObserverOn == 1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    % set RL flag
+    DynOpt.RL_flag = 1;
+
+    % memory load
+    % save buffer mems
+    if struct.load_mem
+        
+        start_step = 2;
+        
+        DynOpt.Y = struct.Y_last;
+        DynOpt.dY = struct.dY_last;
+        DynOpt.intY = struct.intY_last;
+        DynOpt.buf_dY = struct.buf_dY_last;
+        DynOpt.Y_full_story= struct.Y_full_story_last;
+        DynOpt.dY_full_story = struct.dY_full_story_last;
+        DynOpt.intY_full_story= struct.DynOpt.intY_full_story_last;
+
+        DynOpt.buf_dYhat = struct.buf_dYhat_last;
+        DynOpt.Yhat_full_story= struct.Yhat_full_story_last;
+        DynOpt.dYhat_full_story = struct.dYhat_full_story_last;
+        DynOpt.intYhat_full_story= struct.DynOpt.intYhat_full_story_last;
+
+        DynOpt.Y_space = struct.Y_space_last;
+        DynOpt.Y_space_full_story = struct.Y_space_last;
+        
+        DynOpt.OptXstoryTRUE = [struct.OptXstoryTRUE_last, DynOpt.OptXstoryTRUE(:,start_step:end)];
+        DynOpt.OptXstory = [struct.OptXstory_last, DynOpt.OptXstory(:,2:end)];
+        DynOpt.OptXstory_runtime = [struct.OptXstory_runtime_last, DynOpt.OptXstory_runtime(:,start_step:end)];
+        DynOpt.Xstory = [struct.Xstory_last, DynOpt.Xstory(:,2:end)];
+        
+        DynOpt.time_tot = [struct.time_last, DynOpt.time(2:end)];
+        
+        DynOpt.input_true = [struct.input_true_last, DynOpt.input_true(:,2:end)];
+        
+        DynOpt.mag_field_story = [struct.mag_field_story_last, DynOpt.mag_field_story];
+        
+        DynOpt.eps_noise_story = [struct.eps_noise_story_last, DynOpt.eps_noise_story];
+    end
+    
 %% Observer implementation 
     if DynOpt.OptimisationOn
         if strcmp(struct.Observer,'OPT')
@@ -404,17 +443,65 @@ if DynOpt.ObserverOn == 1
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % convert quaterinions to euler angles 
-    DynOpt.Opt_quat_runtime = DynOpt.wrap(quat2eul(DynOpt.OptXstory_runtime(DynOpt.integration_pos*6+1:DynOpt.integration_pos*6+4,:)'))';
-    DynOpt.Opt_quat = DynOpt.wrap(quat2eul(DynOpt.OptXstory(DynOpt.integration_pos*6+1:DynOpt.integration_pos*6+4,:)'))';
+    DynOpt.Opt_quat_runtime = DynOpt.wrap(quat2eul(DynOpt.OptXstory_runtime(DynOpt.integration_pos*6+1:DynOpt.integration_pos*6+4,DynOpt.past_length+1:end)'))';
+    DynOpt.Opt_quat = DynOpt.wrap(quat2eul(DynOpt.OptXstory(DynOpt.integration_pos*6+1:DynOpt.integration_pos*6+4,DynOpt.past_length+1:end)'))';
     DynOpt.OptErrorStory_Euler = DynOpt.True_quat-DynOpt.Opt_quat_runtime;
       
     % performance
     DynOpt.lambda_min = DynOpt.lambda_min(2:end);
-%     DynOpt.Jstory = DynOpt.Jstory(1,2:end);
     DynOpt.grad_story = DynOpt.grad_story(:,2:end);
     
     % Optimisation time
     DynOpt.opt_time = DynOpt.opt_time(2:end);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if size(DynOpt.Y_full_story,2) >= DynOpt.w
+        
+        %%% back step version 1
+%         [~,pos_nonzero] = find(DynOpt.Y_space);
+%         main_length = max(DynOpt.Y_space(pos_nonzero(1)),(DynOpt.Y_space(pos_nonzero(end))-DynOpt.Y_space(pos_nonzero(1))));
+%         back_step = size(DynOpt.Y_full_story,2) - main_length;
+        
+        %%% back step version 2
+        back_step = 1;
+        end_step = 1;
+        
+        %%% buffer length
+        buf_len = size(DynOpt.buf_dy,2);
+        DynOpt.buf_dY_last = DynOpt.Y_full_story(:,end-buf_len:end-1);
+        DynOpt.buf_dYhat_last = DynOpt.Yhat_full_story(:,end-buf_len:end-1);
+        
+        DynOpt.Y_last = DynOpt.Y;
+        DynOpt.dY_last = DynOpt.dY;
+        DynOpt.intY_last = DynOpt.intY;
+        
+        DynOpt.Y_full_story_last = DynOpt.Y_full_story(:,back_step:end-end_step);
+        DynOpt.dY_full_story_last = DynOpt.dY_full_story(:,back_step:end-end_step);
+        DynOpt.intY_full_story_last = DynOpt.intY_full_story(:,back_step:end-end_step);
+
+        
+        DynOpt.Yhat_full_story_last = DynOpt.Yhat_full_story(:,back_step:end-end_step);
+        DynOpt.dYhat_full_story_last = DynOpt.dYhat_full_story(:,back_step:end-end_step);
+        DynOpt.intYhat_full_story_last = DynOpt.intYhat_full_story(:,back_step:end-end_step);
+        
+        DynOpt.Y_space_last = DynOpt.Y_space;
+        DynOpt.Y_space_full_story_last = DynOpt.Y_space_full_story;
+        
+        DynOpt.OptXstoryTRUE_last = DynOpt.OptXstoryTRUE(:,back_step:end);
+        DynOpt.OptXstory_last = DynOpt.OptXstory(:,back_step:end);
+        DynOpt.OptXstory_runtime_last = DynOpt.OptXstory_runtime(:,back_step:end);
+        DynOpt.Xstory_last = DynOpt.Xstory(:,back_step:end);
+        
+        DynOpt.time_last = DynOpt.time_tot;
+        
+        % keep end because it starts with zeros
+        DynOpt.input_true_last = DynOpt.input_true(:,back_step:end);
+        
+        DynOpt.mag_field_story_last = DynOpt.mag_field_story(:,back_step:end-end_step);
+        
+        DynOpt.eps_noise_story_last = DynOpt.eps_noise_story(:,back_step:end);
+    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 

@@ -46,7 +46,7 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     DynOpt.y_end = 3;
     DynOpt.nJ_nl = 2;
     %%%% bias values %%%%%
-    DynOpt.scale_factor_init = 1e0.*[1;1e-1;1e-2;0;5e-1].*ones(DynOpt.y_end+DynOpt.nJ_nl,DynOpt.dim_out);
+    DynOpt.scale_factor_init = 1e0.*[1;1e-1;1*5e-2;0;5e-1].*ones(DynOpt.y_end+DynOpt.nJ_nl,DynOpt.dim_out);
     % memory factor
     % struct.lambda = [0.8; 1; 0.7; 1; 1];
     DynOpt.lambda = 1*[1; 1; 1; 1; 1];

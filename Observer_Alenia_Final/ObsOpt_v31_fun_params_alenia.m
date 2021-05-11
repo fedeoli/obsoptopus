@@ -158,9 +158,9 @@ if DynOpt.ObserverOn == 1
         end
         % first derivative 
         % number of derivatives
-        DynOpt.c1_derivative = 1;
+        DynOpt.c1_derivative = 3;
         %has to be smaller than DynOpt.Nts
-        DynOpt.d1_derivative = 3;
+        DynOpt.d1_derivative = 10;
 
         % buffer init
         DynOpt.buf_dy = zeros(DynOpt.dim_out,DynOpt.d1_derivative);
@@ -369,8 +369,8 @@ if DynOpt.ObserverOn == 1
     DynOpt.TolExit_X = 1e-10;
     DynOpt.outfun = @outputfcn;
     % define cost functions and measurements
-    DynOpt.cost_function = @cost_function_v8;
-    DynOpt.cost_function_name = 'cost_function_v8';
+    DynOpt.cost_function = @cost_function_v9;
+    DynOpt.cost_function_name = 'cost_function_v9';
     if strcmp(struct.Observer,'EKF')
         DynOpt.get_measure = @get_measure_v5_function;
         DynOpt.get_measure_name = 'get_measure_v5';
@@ -419,6 +419,9 @@ if DynOpt.ObserverOn == 1
     % safety interval policy
     DynOpt.always_opt = struct.always_opt;
     DynOpt.flush_buffer = struct.flush_buffer;
+    
+    % set RL flag
+    DynOpt.RL_flag = 0;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

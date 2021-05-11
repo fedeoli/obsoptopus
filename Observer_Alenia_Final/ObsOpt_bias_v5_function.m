@@ -15,21 +15,33 @@ for k=1:length(DynOpt.time)
     %%%%%%%%%%%%%%%%%%
 
     % update actual index
-    DynOpt.ActualTimeIndex = k;
+    DynOpt.ActualTimeIndex = DynOpt.time(k)+1;
+    if k == 1 
+        if DynOpt.RL_flag == 1
+            DynOpt.past_length = size(DynOpt.OptXstory,2)-1;
+        else
+            DynOpt.past_length = 0;
+        end
+        if ~isfield(DynOpt,'time_tot')
+            DynOpt.time_tot = DynOpt.time;
+        end
+    end
+    DynOpt.Niter = DynOpt.past_length + k;
+    DynOpt.Niter_inner = k;
 
     % reference state - used for noise
-    DynOpt.Xtrue = [DynOpt.state(:,k);DynOpt.param_story(:,k)];
+    DynOpt.Xtrue = DynOpt.OptXstoryTRUE(:,DynOpt.Niter);
 
     %forward propagation of the previous estimate
     if(k>1)
         % INTEGRATION OF BOTH POSITION AND ATTITUDE - STACK 
         % Control allocation inside "params" structure          
-        [DynOpt.X, params] = DynOpt.model_propagate(DynOpt,DynOpt.ActualTimeIndex,DynOpt.Ts,DynOpt.OptXstory(:,DynOpt.ActualTimeIndex-1),params);
-        DynOpt.OptXstory(:,k) = DynOpt.X; 
-        DynOpt.OptXstory_runtime(:,k) = DynOpt.X;
+        [DynOpt.X, params] = DynOpt.model_propagate(DynOpt,DynOpt.Niter,DynOpt.Ts,DynOpt.OptXstory(:,DynOpt.Niter-1),params);
+        DynOpt.OptXstory(:,DynOpt.Niter) = DynOpt.X; 
+        DynOpt.OptXstory_runtime(:,DynOpt.Niter) = DynOpt.X;
 
-        [temp_Xstory, params] = DynOpt.model_propagate(DynOpt,DynOpt.ActualTimeIndex,DynOpt.Ts,DynOpt.Xstory(:,DynOpt.ActualTimeIndex-1),params);
-        DynOpt.Xstory(:,k) = temp_Xstory; 
+        [temp_Xstory, params] = DynOpt.model_propagate(DynOpt,DynOpt.Niter,DynOpt.Ts,DynOpt.Xstory(:,DynOpt.Niter-1),params);
+        DynOpt.Xstory(:,DynOpt.Niter) = temp_Xstory; 
     end
 
     %%%%%%%%% MEASUREMENT %%%%%%%%%%%
@@ -37,7 +49,7 @@ for k=1:length(DynOpt.time)
     measure_forward = 1;
 
     if DynOpt.simulationModel == 1
-        [DynOpt.buf_dy,Y_true] = DynOpt.get_measure(DynOpt,DynOpt.Xtrue,0,measure_forward,DynOpt.buf_dy,DynOpt.intY_full_story,params,DynOpt.ActualTimeIndex);
+        [DynOpt.buf_dy,Y_true] = DynOpt.get_measure(DynOpt,DynOpt.Xtrue,0,measure_forward,DynOpt.buf_dy,DynOpt.intY_full_story,params,DynOpt.Niter);
         % copy to Y noise and corrupt only the measure 
         Y_noise = noise_model_v1(Y_true,DynOpt,params);     
     else
@@ -55,19 +67,17 @@ for k=1:length(DynOpt.time)
     DynOpt.intY_full_story(:,end+1) = Y_filter(:,3);
 
     % fisrt bunch of data - read Y every Nts and check if the signal is
-    [DynOpt, params] = dJ_cond_v3_function(DynOpt,params,DynOpt.theta,DynOpt.beta,DynOpt.gamma);
+    [DynOpt, params] = dJ_cond_v4_function(DynOpt,params,DynOpt.theta,DynOpt.beta,DynOpt.gamma);
     distance = DynOpt.ActualTimeIndex-DynOpt.Y_space(end);
     DynOpt.distance_safe_flag = (distance < DynOpt.safety_interval);
-    % SENSOR SATURATION/ACCURACY
-    DynOpt.sensor_stop_flag = (DynOpt.Y_full_story(DynOpt.ActualTimeIndex) < DynOpt.sensor_stop_thresh);
     %%%% select optimisation with hystheresis %%%%%
-    hyst_low = (DynOpt.dJ_cond_story(end,max(1,DynOpt.ActualTimeIndex-1)) < DynOpt.dJ_1) && (DynOpt.dJ_cond >= DynOpt.dJ_1);
+    hyst_low = (DynOpt.dJ_cond_story(end,max(1,DynOpt.Niter_inner-1)) < DynOpt.dJ_1) && (DynOpt.dJ_cond >= DynOpt.dJ_1);
     hyst_high = (DynOpt.dJ_cond >= DynOpt.dJ_2);
     DynOpt.hyst_flag = ~(hyst_low || hyst_high);
     if  ((distance < DynOpt.Nts) || DynOpt.hyst_flag) && DynOpt.distance_safe_flag
         %%%% ESTIMATED measurements
         % measures
-        [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.ActualTimeIndex),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.ActualTimeIndex);
+        [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.Niter),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.Niter);
         DynOpt.Yhat_full_story(:,end+1) = Yhat(:,1);
         DynOpt.dYhat_full_story(:,end+1) = Yhat(:,2);
         DynOpt.intYhat_full_story(:,end+1) = Yhat(:,3);
@@ -113,15 +123,16 @@ for k=1:length(DynOpt.time)
         % store measure times
         DynOpt.temp_time = [DynOpt.temp_time k];
 
-        if (k < max(1,DynOpt.WindowSamples)) 
-            [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.ActualTimeIndex),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.ActualTimeIndex);
+        cols_nonzeros = length(find(sum(DynOpt.Y~=0)==size(DynOpt.Y,1)));
+        if (cols_nonzeros < DynOpt.w) 
+            [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.Niter),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.Niter);
             DynOpt.Yhat_full_story(:,end+1) = Yhat(:,1);
             DynOpt.dYhat_full_story(:,end+1) = Yhat(:,2);
             DynOpt.intYhat_full_story(:,end+1) = Yhat(:,3);
         else    
 
             % measures
-            [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.ActualTimeIndex),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.ActualTimeIndex);
+            [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.Niter),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.Niter);
             DynOpt.Yhat_full_story(:,end+1) = Yhat(:,1);
             DynOpt.dYhat_full_story(:,end+1) = Yhat(:,2);
             DynOpt.intYhat_full_story(:,end+1) = Yhat(:,3);
@@ -138,32 +149,19 @@ for k=1:length(DynOpt.time)
                 if isempty(max_dist)
                     max_dist = 1;
                 end
-                if (max_dist >= DynOpt.safety_interval) && (DynOpt.flush_buffer == 1)
-                    DynOpt.Y(:,1:end-1) = zeros(DynOpt.dim_out,DynOpt.w-1);
-                    DynOpt.dY(:,1:end-1) = zeros(DynOpt.dim_out,DynOpt.w-1);
-                    DynOpt.intY(:,1:end-1) = zeros(DynOpt.dim_out,DynOpt.w-1);
-                    DynOpt.Y_space(:,1:end-2) = zeros(1,DynOpt.w-2);
-                    %%% update also the backup %%%
-                    Y_space_backup = zeros(1,DynOpt.w);
-                    %%% restore Y_space_full_story
-                    n_samples = min(length(DynOpt.Y_space_full_story)-1,DynOpt.w-1);
-                    temp_Y_space_full_story = DynOpt.Y_space_full_story;
-                    temp_Y_space_full_story(end-n_samples:end-1) = zeros(1,n_samples);
-                    buf_Y_space_full_story = temp_Y_space_full_story(end-n_samples:end-1);
-                else
-                    n_samples = min(length(DynOpt.Y_space_full_story)-1,DynOpt.w);
-                    buf_Y_space_full_story = DynOpt.Y_space_full_story(end-n_samples:end);
-                end
+                n_samples = min(length(DynOpt.Y_space_full_story)-1,DynOpt.w);
+                buf_Y_space_full_story = DynOpt.Y_space_full_story(end-n_samples:end);
 
                 % back time index
                 buf_dist = diff(buf_Y_space_full_story);
-                DynOpt.BackTimeIndex = max(1,k-sum(buf_dist)); 
+                DynOpt.BackTimeIndex = DynOpt.ActualTimeIndex-sum(buf_dist); 
+                DynOpt.BackIterIndex = find(DynOpt.time_tot==DynOpt.BackTimeIndex);
 
                 % set of initial conditions
                 if DynOpt.optimise_params == 1
-                    DynOpt.temp_x0 = DynOpt.OptXstory(DynOpt.integration_pos*6+1:end,DynOpt.BackTimeIndex);
+                    DynOpt.temp_x0 = DynOpt.OptXstory(DynOpt.integration_pos*6+1:end,DynOpt.BackIterIndex);
                 else
-                    DynOpt.temp_x0 = DynOpt.OptXstory(DynOpt.integration_pos*6+1:end-DynOpt.nparams,DynOpt.BackTimeIndex);
+                    DynOpt.temp_x0 = DynOpt.OptXstory(DynOpt.integration_pos*6+1:end-DynOpt.nparams,DynOpt.BackIterIndex);
                 end
 
                 % Optimisation
@@ -217,11 +215,11 @@ for k=1:length(DynOpt.time)
                     if DynOpt.optimise_params == 1
                         DynOpt.X = NewXopt;
                     else
-                        DynOpt.X = [NewXopt;DynOpt.OptXstory(DynOpt.StateDim+1:end,DynOpt.BackTimeIndex)];
+                        DynOpt.X = [NewXopt;DynOpt.OptXstory(DynOpt.StateDim+1:end,DynOpt.BackIterIndex)];
                     end
                     
                     if DynOpt.integration_pos == 1
-                        DynOpt.X = [DynOpt.OptXstory(1:6,DynOpt.BackTimeIndex); DynOpt.X];
+                        DynOpt.X = [DynOpt.OptXstory(1:6,DynOpt.BackIterIndex); DynOpt.X];
                     end
 
                     % store measure times
@@ -238,7 +236,7 @@ for k=1:length(DynOpt.time)
                     DynOpt.jump_flag = 0;
                     DynOpt.select_counter = DynOpt.select_counter + 1;
 
-                    DynOpt.OptXstory(:,DynOpt.BackTimeIndex) = DynOpt.X;
+                    DynOpt.OptXstory(:,DynOpt.BackIterIndex) = DynOpt.X;
 
                     % params and state update
                     if DynOpt.identify == 1
@@ -249,7 +247,7 @@ for k=1:length(DynOpt.time)
                     %%%%%%%%%%%%%%%%% FIRST MEASURE UPDATE %%%%%%%%
                     % manage measurements
                     % set the derivative buffer as before the optimisation process (multiple f computation)
-                    back_time = DynOpt.BackTimeIndex;
+                    back_time = DynOpt.BackIterIndex;
                     if (back_time) >= DynOpt.d1_derivative
                         DynOpt.buf_dyhat_temp = DynOpt.Yhat_full_story(:,back_time-(DynOpt.d1_derivative-1):back_time);
                     else
@@ -262,18 +260,18 @@ for k=1:length(DynOpt.time)
                     % NB: the output storage has to be done in
                     % back_time+1 as the propagation has been
                     % performed 
-                    [DynOpt.buf_dyhat_temp, Yhat] = DynOpt.get_measure(DynOpt,x_propagate,0,measure_forward,DynOpt.buf_dyhat_temp,DynOpt.intYhat_full_story,params,DynOpt.BackTimeIndex);
+                    [DynOpt.buf_dyhat_temp, Yhat] = DynOpt.get_measure(DynOpt,x_propagate,0,measure_forward,DynOpt.buf_dyhat_temp,DynOpt.intYhat_full_story,params,DynOpt.BackIterIndex);
                     DynOpt.Yhat_full_story(:,back_time+1) = Yhat(:,1);
                     DynOpt.dYhat_full_story(:,back_time+1) = Yhat(:,2);
                     DynOpt.intYhat_full_story(:,back_time+1) = Yhat(:,3);
                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 
                     %%%%%%%%%%% PROPAGATION %%%%%%%%%%%%%%%%%%%%%%%
-                    n_iter_propagate = DynOpt.ActualTimeIndex-DynOpt.BackTimeIndex;
+                    n_iter_propagate = DynOpt.Niter-DynOpt.BackIterIndex;
                     
                     for j =1:n_iter_propagate 
                         % back time
-                        back_time = DynOpt.BackTimeIndex+j;
+                        back_time = DynOpt.BackIterIndex+j;
 
                         % integrate
                         [x_propagate, params] = DynOpt.model_propagate(DynOpt,back_time,DynOpt.Ts,x_propagate, params);                      

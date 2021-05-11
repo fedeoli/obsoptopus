@@ -1,19 +1,21 @@
 %% function plot Q
-function Qval = plotQ(Q)
+function Qval = plotQ(Q,domain_S)
+
+    
     %%% show results
     figure(1)
     clf
-    a = max(Q,[],3);
-    Qval = -1*ones(size(a,1),size(a,2));
+    a = max(Q,[],2);
+    Qval = -1*ones(size(a,1),1);
     for j=1:size(a,1)
-        for k=1:size(a,2)
-           b = find(Q == a(j,k));
-           [~,~,Aval] = ind2sub(size(Q),b);
-           Qval(j,k) = Aval;
-        end
+       Aval = find(Q(j,:) == a(j));
+       Qval(j) = Aval;
     end
+    
+    size_Q = [size(domain_S,2),size(domain_S,2)];
+    Qval = reshape(Qval,size_Q);
     bar3(Qval)
-    xlabel('action')
-    ylabel('state')
+    xlabel('e')
+    ylabel('edot')
     zlabel('value')
 end

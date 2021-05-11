@@ -5,7 +5,7 @@ function [x_propagate, params_out, DynOpt] = model_propagate_local_v3(DynOpt,tim
     DynOpt.current_pos = time_instant;
 
     % integrazione estimation and real
-    tspan = DynOpt.time(time_instant):time_step:DynOpt.time(time_instant) + time_step;
+    tspan = DynOpt.time(1):time_step:DynOpt.time(2) + time_step;
 
     if DynOpt.integration_pos == 1 && DynOpt.integration_att == 0
         % current attitude 

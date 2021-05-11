@@ -1,5 +1,5 @@
 %% function to locate state in RL algorithm
-function [pos, state] = locate_state(nu,domain_S)
+function [pos_final, pos, state] = locate_state(nu,domain_S)
 
     % state dim
     dim = size(domain_S,1);
@@ -16,4 +16,8 @@ function [pos, state] = locate_state(nu,domain_S)
         end
         state(i) = domain_S(i,pos(i));
     end
+    
+    % from readable pos to index
+    size_matrix = [size(domain_S,2),size(domain_S,2)];
+    pos_final = sub2ind(size_matrix,pos(1),pos(2));
 end

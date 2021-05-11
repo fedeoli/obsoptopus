@@ -7,6 +7,7 @@ addpath(genpath([pwd '/Satellite']));
 % clear
 if exist('RL','var')
     keep RL s current_reward
+    setup.load_mem = 0;
 else
     clear
 end
@@ -18,7 +19,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % simulation time
 setup.t_start = 0;
-setup.Tend = 200;
+setup.Tend = 300;
 setup.Ts = 1e0;
 
 % measurement dimension
@@ -28,7 +29,7 @@ setup.dim_out = 3+3*setup.nMagneto;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 0;
+setup.print = 1;
 setup.RL = 0;
 
 % montecarlo or single simulation
@@ -54,7 +55,7 @@ setup.identify = 1;
 setup.check = 0;
 setup.fault_sim = 0;
 setup.flush_buffer = 0;
-setup.always_opt = 0;
+setup.always_opt = 1;
 setup.optimise_input = 0;
 setup.input_tuning = 0;
 
@@ -82,7 +83,7 @@ setup.blue_flag = 0;
 setup.J_thresh = [1e-10, 1e3];
 setup.max_iter = 20;
 setup.maxFcount = Inf;
-setup.safety_density = Inf;
+setup.safety_density = 1;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
@@ -94,7 +95,7 @@ setup.dJ_1 = setup.adaptive*1e-3;
 setup.y_end = 3;
 setup.nJ_nl = 2;
 %%%% bias values %%%%%
-setup.scale_factor_init = 1e0.*[1;1e-1;5e-2;0;1e0].*ones(setup.y_end+setup.nJ_nl,setup.dim_out);
+setup.scale_factor_init = 1e0.*[1;1e-1;0*5e-2;0;5e-1].*ones(setup.y_end+setup.nJ_nl,setup.dim_out);
 % memory factor
 % setup.lambda = [0.8; 1; 0.7; 1; 1];
 setup.lambda = 1*[1; 1; 1; 1; 1];

@@ -11,17 +11,22 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
     %%%%%%%%%%%%%%%%%%%%%%%% ENVIRONMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Define Environment domain - exploiring start %%%
     %%% define target attitude and initial state range
-    RL.E.domain_target = 1*[pi/4*ones(3,1), pi/4*ones(3,1)];
-    RL.E.domain_status = [0.5.*RL.E.domain_target(:,2), 1.5.*RL.E.domain_target(:,2); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
+    RL.E.domain_target = 0*[pi/4*ones(3,1), pi/4*ones(3,1)];
+    % domain 1 - for nonzero targets
+    % domain 2 - general one
+    % RL.E.domain_status = [0.5.*RL.E.domain_target(:,2), 1.5.*RL.E.domain_target(:,2); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
+    RL.E.domain_status = [-pi/2*ones(3,1), pi/2*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
     %%% state vector length
     RL.E.dimState = size(RL.E.domain_status,1);
     RL.E.dimTarget = size(RL.E.domain_target,1);
     
     %%% Environment state - nu %%%
+    N_elems = 10;
     RL.E.domain_S_Ts = 1e-1;
-    domain_grid_1d = 0:RL.E.domain_S_Ts:1; 
-    RL.E.domain_S = [domain_grid_1d; domain_grid_1d];
-    RL.E.domain_S_dim = size(RL.E.domain_S);
+    domain_grid_1 = linspace(0,1,N_elems); 
+    domain_grid_2 = linspace(0,30,N_elems);
+    RL.E.domain_S = [domain_grid_1; domain_grid_2];
+    RL.E.domain_S_dim = size(RL.E.domain_S,2)^size(RL.E.domain_S,1);
     
     %%% Orbit generation data %%%
     RL.E.domain_ecc = [1e-4; 1.5e-4];
@@ -47,13 +52,15 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
 
     %%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
     % check row stochastic
-    RL.S.pi0 = rand(RL.E.domain_S_dim(1),RL.E.domain_S_dim(2),RL.A.dimActions);
-    RL.S.pi0 = RL.S.pi0./sum(RL.S.pi0,3);
+%     RL.S.pi0 = rand(RL.E.domain_S_dim,RL.A.dimActions);
+    RL.S.pi0 = zeros(RL.E.domain_S_dim,RL.A.dimActions);
+    RL.S.pi0(:,end) = 1; 
+    RL.S.pi0 = RL.S.pi0./sum(RL.S.pi0,2);
     RL.S.Q = 5e-2*RL.S.pi0;
     RL.S.search{1}.pi = RL.S.pi0;
       
     % greedy choice
-    RL.S.epsilon = 5e-2;
+    RL.S.epsilon = 1;
     
     % reward storage
     RL.S.R = [];
@@ -74,10 +81,10 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
         setup.T_duration = 20;
         setup.t_start = 0;
         setup.Tend = setup.t_start + 20;
-        setup.T = 50;
+        setup.T = 100;
         setup.u_freq = 1/setup.T;
         % init state
-        [RL.S.state_pos, RL.S.state] = locate_state(nu,RL.E.domain_S);
+        [RL.S.state_pos_ind, RL.S.state_pos, RL.S.state] = locate_state(nu,RL.E.domain_S);
         % save setup
         RL.S.setup = setup;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,10 +101,10 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
         RL.S.p_eps = rand(1);
         RL.S.p(1) = rand(1);
         if RL.S.p_eps < RL.S.epsilon
-            RL.S.action_pos = find(max(getval_user(RL.S.Q,RL.S.state_pos)),1,'first');
+            RL.S.action_pos = find(getval_user(RL.S.Q,RL.S.state_pos_ind) ==max(getval_user(RL.S.Q,RL.S.state_pos_ind)),1,'first');
             RL.S.A(:,1) = RL.A.domain_A(RL.S.action_pos);
         else
-            cum_prob = cumsum(getval_user(RL.S.search{s}.pi,RL.S.state_pos));
+            cum_prob = cumsum(getval_user(RL.S.search{s}.pi,RL.S.state_pos_ind));
             RL.S.action_pos = find(cum_prob>=RL.S.p(1),1,'first');
             RL.S.A(:,1) = RL.A.domain_A(RL.S.action_pos);
         end
@@ -127,6 +134,7 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
             DynOpt_save.position_state = DynOpt.position_state;
             DynOpt_save.attitude_state = DynOpt.attitude_state;
             DynOpt_save.time = DynOpt.time;
+            DynOpt_save.OptErrorStory_Euler = DynOpt.OptErrorStory_Euler;
 
             % store structures
             RL.S.search{s}.DynOpt{i} = DynOpt_save;  
@@ -145,16 +153,16 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
             % get last error
             nu = get_state(DynOpt);
             % discretize state
-            [RL.S.state_next_pos, RL.S.state_next] = locate_state(nu,RL.E.domain_S);
+            [RL.S.state_next_pos_ind, RL.S.state_next_pos, RL.S.state_next] = locate_state(nu,RL.E.domain_S);
 
             %%% select action from policy - A'
             RL.S.p_eps = rand(1);
             RL.S.p(i) = rand(1);
             if RL.S.p_eps < RL.S.epsilon
-                pos_1 = find(max(getval_user(RL.S.Q,RL.S.state_pos)),1,'first');
+                pos_1 = find(getval_user(RL.S.Q,RL.S.state_next_pos_ind) == max(getval_user(RL.S.Q,RL.S.state_next_pos_ind)),1,'first');
                 A_1 = RL.A.domain_A(pos_1);
             else
-                cum_prob = cumsum(getval_user(RL.S.search{s}.pi,RL.S.state_pos));
+                cum_prob = cumsum(getval_user(RL.S.search{s}.pi,RL.S.state_next_pos_ind));
                 pos_1 = find(cum_prob>=RL.S.p(i),1,'first');
                 A_1 = RL.A.domain_A(pos_1);
             end
@@ -163,18 +171,18 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
 
             %%% TD0 update value function %%%
             if ~testing
-                Q_now = getval_user(RL.S.Q,RL.S.state_pos);
-                Q_next = getval_user(RL.S.Q,RL.S.state_next_pos);
+                Q_now = getval_user(RL.S.Q,RL.S.state_pos_ind);
+                Q_next = getval_user(RL.S.Q,RL.S.state_next_pos_ind);
                 temp =  Q_now(RL.S.action_pos) + RL.S.alpha*(current_reward + RL.S.gamma*Q_next(action_next_pos) - Q_now(RL.S.action_pos));
-                pos = [RL.S.state_pos; RL.S.action_pos];
+                pos = [RL.S.state_pos_ind; RL.S.action_pos];
                 RL.S.Q = setval_user(RL.S.Q,pos,temp);
             end
             
             % update policy from current Q function
-            RL.S.search{s}.pi = RL.S.Q./sum(RL.S.Q,3);
+            RL.S.search{s}.pi = RL.S.Q./sum(RL.S.Q,2);
             
             %%% update state %%%
-            RL.S.state_pos = RL.S.state_next_pos;
+            RL.S.state_pos_ind = RL.S.state_next_pos_ind;
             RL.S.state = RL.S.state_next;
 
             %%% update action %%%
@@ -194,19 +202,50 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
             
             setup.t_start = setup.Tend;
             setup.Tend = setup.t_start + 20;
+
+            % save buffer mems
+            setup.load_mem = 1;
+            setup.Y_last = DynOpt.Y_last;
+            setup.dY_last = DynOpt.dY_last;
+            setup.intY_last = DynOpt.intY_last;
+            setup.buf_dY_last = DynOpt.buf_dY_last;
+            setup.Y_full_story_last = DynOpt.Y_full_story_last;
+            setup.dY_full_story_last = DynOpt.dY_full_story_last;
+            setup.DynOpt.intY_full_story_last = DynOpt.intY_full_story_last;
+
+            setup.buf_dYhat_last = DynOpt.buf_dYhat_last;
+            setup.Yhat_full_story_last = DynOpt.Yhat_full_story_last;
+            setup.dYhat_full_story_last = DynOpt.dYhat_full_story_last;
+            setup.DynOpt.intYhat_full_story_last = DynOpt.intYhat_full_story_last;
+
+            setup.Y_space_last = DynOpt.Y_space_last;
+            setup.Y_space_full_story_last = DynOpt.Y_space_full_story_last;
+            
+            setup.OptXstoryTRUE_last = DynOpt.OptXstoryTRUE_last;
+            setup.OptXstory_last = DynOpt.OptXstory_last;
+            setup.OptXstory_runtime_last = DynOpt.OptXstory_runtime_last;
+            setup.Xstory_last = DynOpt.Xstory_last;
+        
+            setup.time_last = DynOpt.time_last;
+            
+            setup.input_true_last = DynOpt.input_true_last;
+            
+            setup.mag_field_story_last = DynOpt.mag_field_story_last;
+            
+            setup.eps_noise_story_last = DynOpt.eps_noise_story_last;
         end
         
         % update policy from current Q function
-        RL.S.search{s+1}.pi = RL.S.Q./sum(RL.S.Q,3);
+        RL.S.search{s+1}.pi = RL.S.Q./sum(RL.S.Q,2);
         
         %%% show results
-        RL.S.Qval = plotQ(RL.S.Q);
+        RL.S.Qval = plotQ(RL.S.Q,RL.E.domain_S);
         pause(0.1)
         
     end
     
     %%% show results
-    RL.S.Qval = plotQ(RL.S.Q);
+    RL.S.Qval = plotQ(RL.S.Q,RL.E.domain_S);
     pause(0.1)
 end
 

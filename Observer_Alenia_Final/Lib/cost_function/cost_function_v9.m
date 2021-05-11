@@ -1,5 +1,5 @@
 %% cost function
-function [Jtot,DynOpt] = cost_function_v8(x,params,DynOpt)
+function [Jtot,DynOpt] = cost_function_v9(x,params,DynOpt)
 
 % cost function init
 Jtot = 0;
@@ -31,11 +31,12 @@ end
 
 % n_item = length(find(min(abs(DynOpt.Y),[],1)));
 n_item = length(find((DynOpt.Y_space)));
+n_iter = n_item;
 
 if n_item == size(DynOpt.Y,2)
-    n_iter = n_item;
+    shift = DynOpt.w-n_item;
 else
-    n_iter = n_item;
+    shift = n_item;
 end
 
 for j=1:n_iter
@@ -55,21 +56,25 @@ for j=1:n_iter
         
         % J meas
         for i=1:length(J_meas)
-            diff = (DynOpt.Y(i,DynOpt.w-n_item+j)-Yhat(i,1));
+            diff = (DynOpt.Y(i,shift+j)-Yhat(i,1));
             J_meas(i) = DynOpt.scale_factor(j,1,i)*(diff)^2;
         end
 
         % J derivative
         n_der = DynOpt.dim_out;
         for i=1:n_der
-            diff = (DynOpt.dY(i,DynOpt.w-n_item+j)-Yhat(i,2));
+            diff = (DynOpt.dY(i,shift+j)-Yhat(i,2));
             J_der(i) = DynOpt.scale_factor(j,2,i)*(diff)^2;
+        end
+        
+        if sum(J_der) > 1e-6
+           a = 1; 
         end
         
         % integral
         n_int = DynOpt.dim_out;
         for i=1:n_int
-            diff = (DynOpt.intY(i,DynOpt.w-n_item+j)-Yhat(i,3));
+            diff = (DynOpt.intY(i,shift+j)-Yhat(i,3));
             J_int(i) = DynOpt.scale_factor(j,3,i)*(diff)^2;
         end
         
@@ -78,7 +83,7 @@ for j=1:n_iter
         Yhat_meas = get_measure_dyn_v1_function(DynOpt,X_meas,j,1,params);
         n_int = 3;
         for i=1:n_int
-            diff = (DynOpt.dY(i,DynOpt.w-n_item+j)-Yhat_meas(4+i));
+            diff = (DynOpt.dY(i,shift+j)-Yhat_meas(4+i));
             J_dyn(i) = DynOpt.scale_factor(j,4,i)*(diff)^2;
         end
         

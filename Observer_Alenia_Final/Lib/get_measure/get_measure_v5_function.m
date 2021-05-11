@@ -42,21 +42,21 @@ if measure_flag == 0
     % get first nonzero element
     [~,pos] = find(buf_dist);
     % check if exist a zero
-    zero_flag = pos(1)>1;
+    zero_flag = pos(1)>=1;
     % set n_iter
-    n_iter = sum(buf_dist(1:pos(j)))-zero_flag;
+    temp_pos = min(length(pos),j);
+    n_iter = sum(buf_dist(1:pos(temp_pos)))-zero_flag;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % integral initial condition
-    y_int = buf_intY(:,DynOpt.BackTimeIndex);
+    y_int = buf_intY(:,DynOpt.BackIterIndex);
     
     if (forward==1)
         % the max has been added to at least save the current state if
         for i=1:n_iter
             
             % integration
-            [x_propagate, params] = DynOpt.model_propagate(DynOpt,DynOpt.BackTimeIndex+i,DynOpt.Ts,x_propagate,params);
-            
+            [x_propagate, params] = DynOpt.model_propagate(DynOpt,DynOpt.BackIterIndex+i,DynOpt.Ts,x_propagate,params);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % update buffer
             x_read = zeros(DynOpt.dim_out,1);
@@ -66,7 +66,7 @@ if measure_flag == 0
                         
             % get magnetometers
             if DynOpt.nMagneto > 0
-                [MagTemp_body1, MagTemp_body2,DynOpt] = Magnetometers_GetMeasures_v3(DynOpt,DynOpt.BackTimeIndex+i,x_propagate(offset+1:offset+4)',DynOpt.RPYbetweenMagSensors');
+                [MagTemp_body1, MagTemp_body2,DynOpt] = Magnetometers_GetMeasures_v3(DynOpt,DynOpt.BackIterIndex+i,x_propagate(offset+1:offset+4)',DynOpt.RPYbetweenMagSensors');
             end
             if DynOpt.nMagneto == 1
                 Mag = MagTemp_body1;
@@ -87,7 +87,12 @@ if measure_flag == 0
             end
             
             % integral initial condition
-            y_int = buf_intY(:,max(1,DynOpt.BackTimeIndex+i-1)); 
+            temp_pos = max(1,DynOpt.BackIterIndex+i-1);
+            if size(buf_intY,2) >= temp_pos
+                y_int = buf_intY(:,temp_pos); 
+            else
+                y_int = buf_intY(:,end);
+            end
             % integral
             for z = 1:DynOpt.dim_out
                 y_int(z) = trapz(DynOpt.tspan,[y_int(z), y_read(z)]);

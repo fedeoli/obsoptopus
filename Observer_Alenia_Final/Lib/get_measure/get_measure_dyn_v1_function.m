@@ -21,9 +21,10 @@ if measure_flag == 0
     % get first nonzero element
     [~,pos] = find(buf_dist);
     % check if exist a zero
-    zero_flag = pos(1)>1;
+    zero_flag = pos(1)>=1;
     % set n_iter
-    n_iter = sum(buf_dist(1:pos(j)))-zero_flag;
+    temp_pos = min(length(pos),j);
+    n_iter = sum(buf_dist(1:pos(temp_pos)))-zero_flag;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if (forward==1)
@@ -33,7 +34,7 @@ if measure_flag == 0
         for i=1:n_iter
             
             % integration
-            [x_propagate, params] = DynOpt.model_propagate(DynOpt,DynOpt.BackTimeIndex+i,DynOpt.Ts,x_propagate,params);
+            [x_propagate, params] = DynOpt.model_propagate(DynOpt,DynOpt.BackIterIndex+i,DynOpt.Ts,x_propagate,params);
             
             % dynamics
             x_start = x_propagate(offset+1:end);

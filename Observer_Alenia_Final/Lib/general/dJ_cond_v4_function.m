@@ -1,8 +1,8 @@
 %% signal information policy
-function [DynOpt, params] = dJ_cond_v3_function(DynOpt,params,theta,beta,gamma)
+function [DynOpt, params] = dJ_cond_v4_function(DynOpt,params,theta,beta,gamma)
     
     buffer_ready = size(DynOpt.Y_full_story,2) > 2;
-%   buffer_ready = DynOpt.ActualTimeIndex > DynOpt.time(2);
+%     buffer_ready = DynOpt.ActualTimeIndex > DynOpt.time(2);
 
     if buffer_ready
     

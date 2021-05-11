@@ -2,13 +2,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% DYNOPT INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% initialise DynOpt %%%%     
 init_struct
+setup.load_mem = 0;
 %%%% setup as it was the first algorithm iteration (MDP state init) %%%
 setup.RL = 1;
 % state duration and main setup
 setup.w = 5;
 setup.Nts = 3;
-setup.d = 0.5;
-setup.u_amp = pi/10;
+setup.d = 0.1;
+setup.u_amp = pi/4;
 % iteration
 RL.S.i = 1;
 % action
@@ -16,7 +17,7 @@ RL.S.A(1,1) = setup.nMagneto;
 % initial attitude - true
 RL.S.satellites_attitude_true = (RL.E.domain_status(:,2)-RL.E.domain_status(:,1)).*rand(RL.E.dimState,1) + RL.E.domain_status(:,1);
 % initial attitude - est
-setup.noise_enable = 0;
+setup.noise_enable = 1;
 if setup.noise_enable
     RL.S.S0 = (RL.E.domain_status(:,2)-RL.E.domain_status(:,1)).*rand(RL.E.dimState,1) + RL.E.domain_status(:,1);
 else

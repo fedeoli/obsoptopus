@@ -10,6 +10,7 @@ function plot_RL_v1(RL,s)
     flag_vel_att = 1;
     flag_att = 1;
     flag_eul = 0;
+    flag_eul_err = 0;
     
     %%% define here all the figures
     %%%%% angular velocity %%%%%
@@ -38,9 +39,22 @@ function plot_RL_v1(RL,s)
         linkaxes(ax,'x');
     end
     
-    %%%%% quaternions %%%%%
+    %%%%% euler angles %%%%%
     if flag_eul
         eul = figure('Name','Euler angles estimate');
+        for k=1:3
+            n_subplot = 3;
+            ax(k)=subplot(n_subplot,1,k);
+            ylabel(strcat('x_',num2str(k)));
+            xlabel('simulation time [s]')
+            grid on
+        end
+        linkaxes(ax,'x');
+    end
+
+    %%%%% euler angles - error %%%%%
+    if flag_eul_err
+        eul_err = figure('Name','Euler angles error');
         for k=1:3
             n_subplot = 3;
             ax(k)=subplot(n_subplot,1,k);
@@ -76,7 +90,8 @@ function plot_RL_v1(RL,s)
                     offset = offset_pos + 4;
                     axes(handles(k));
                     hold on
-                    plot(time,DynOpt.OptXstory_runtime(offset+k,:),'r-',time,DynOpt.OptXstoryTRUE((offset+k),:),'b:','LineWidth' ,2);
+                    interval = DynOpt.time(1)+1:DynOpt.time(end)+1;
+                    plot(time,DynOpt.OptXstory_runtime(offset+k,interval),'r-',time,DynOpt.OptXstoryTRUE((offset+k),interval),'b:','LineWidth' ,2);
                     legend('Opt','True')
                 end
                 linkaxes(ax,'x');
@@ -93,13 +108,29 @@ function plot_RL_v1(RL,s)
                     offset = offset_pos;
                     axes(handles(k));
                     hold on
-                    plot(time,DynOpt.OptXstory_runtime(offset+k,:),'r-',time,DynOpt.OptXstoryTRUE((offset+k),:),'b:','LineWidth' ,2);
+                    interval = DynOpt.time(1)+1:DynOpt.time(end)+1;
+                    plot(time,DynOpt.OptXstory_runtime(offset+k,interval),'r-',time,DynOpt.OptXstoryTRUE((offset+k),interval),'b:','LineWidth' ,2);
                     legend('Opt','True')
                 end
                 linkaxes(ax,'x');
             end
             
-            % Euler angles 
+            % Euler angles - error 
+            if flag_eul_err
+                figure(eul_err);
+                handles=flipud(findobj(eul_err,'Type','axes'));
+                xlim([time_total(1) time_total(end)]);
+                hold on
+                for k=1:3
+                    offset = 0;
+                    axes(handles(k));
+                    hold on
+                    plot(time,DynOpt.OptErrorStory_Euler(offset+k,:)*180/pi,'r-','LineWidth' ,2);
+                end
+                linkaxes(ax,'x');
+            end
+
+            % Euler angles
             if flag_eul
                 figure(eul);
                 handles=flipud(findobj(eul,'Type','axes'));
