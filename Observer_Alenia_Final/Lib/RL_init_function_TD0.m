@@ -5,10 +5,19 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     RL = DynOpt.RL;
 
     %%%%%%%%%%%%% from the actions %%%%%%%%%%%%%%%%%%%
+    %%% actions %%%
+%     a_u = RL.S.A(1,RL.S.i);
+    
     %%% Magnetometers %%%
-    DynOpt.nMagneto = RL.S.A(1,RL.S.i);
-    DynOpt.dim_out = 3+3*DynOpt.nMagneto;
-    DynOpt.measure_amp = DynOpt.measure_amp(1:DynOpt.dim_out);
+%     DynOpt.nMagneto = RL.S.A(1,RL.S.i);
+%     DynOpt.dim_out = 3+3*DynOpt.nMagneto;
+%     DynOpt.measure_amp = DynOpt.measure_amp(1:DynOpt.dim_out);
+    
+    %%% Au %%%
+%     DynOpt.u_amp = DynOpt.u_amp + a_u;
+
+    %%% Aw %%%
+    DynOpt.Aw = RL.S.A(:,RL.S.i);
 
     %%%%%%%%%%%%%%% from the state %%%%%%%%%%%%%%%%%%%%%%%%
     % generate state init

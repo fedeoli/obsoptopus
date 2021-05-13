@@ -49,7 +49,7 @@ function [params_out,DynOpt] = set_input_v5(DynOpt,pos,x_att,x_pos,params)
             params.DesiredAttitude =  temp_att;
 
             % compute input
-            tau_PD = AttitudeControl_V2_5(x_att, x_pos, DynOpt.time(pos), params);
+            tau_PD = AttitudeControl_V2_5(x_att, x_pos, DynOpt.time(pos), params) + DynOpt.Aw;
             params.tau = tau_PD;
             
             % store the input and the desired attitude

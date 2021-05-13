@@ -127,6 +127,9 @@ DynOpt.optimise_params = struct.optimise_params;
 
 
 %%%%%%%%%%%%%%%% LOAD FROM RL IF REINFORCEMENT LEARNING %%%%%%%%%%%%%%%%%%%
+% set 0 Aw as default
+DynOpt.Aw = zeros(3,1);
+
 if struct.RL
    DynOpt.RL = struct.RL_data;
    [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0(DynOpt,params,satellites_iner_ECI);
@@ -443,6 +446,9 @@ if DynOpt.ObserverOn == 1
     DynOpt.Opt_quat_runtime = DynOpt.wrap(quat2eul(DynOpt.OptXstory_runtime(DynOpt.integration_pos*6+1:DynOpt.integration_pos*6+4,DynOpt.past_length+1:end)'))';
     DynOpt.Opt_quat = DynOpt.wrap(quat2eul(DynOpt.OptXstory(DynOpt.integration_pos*6+1:DynOpt.integration_pos*6+4,DynOpt.past_length+1:end)'))';
     DynOpt.OptErrorStory_Euler = DynOpt.True_quat-DynOpt.Opt_quat_runtime;
+    
+    %%% tracking error %%%
+    DynOpt.track_err = DynOpt.Opt_quat_runtime - DynOpt.target_attitude;
       
     % performance
     DynOpt.lambda_min = DynOpt.lambda_min(2:end);
@@ -453,12 +459,7 @@ if DynOpt.ObserverOn == 1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if size(DynOpt.Y_full_story,2) >= DynOpt.w
-        
-        %%% back step version 1
-%         [~,pos_nonzero] = find(DynOpt.Y_space);
-%         main_length = max(DynOpt.Y_space(pos_nonzero(1)),(DynOpt.Y_space(pos_nonzero(end))-DynOpt.Y_space(pos_nonzero(1))));
-%         back_step = size(DynOpt.Y_full_story,2) - main_length;
+    if 1 
         
         %%% back step version 2
         back_step = 1;
@@ -466,8 +467,14 @@ if DynOpt.ObserverOn == 1
         
         %%% buffer length
         buf_len = size(DynOpt.buf_dy,2);
-        DynOpt.buf_dY_last = DynOpt.Y_full_story(:,end-buf_len:end-1);
-        DynOpt.buf_dYhat_last = DynOpt.Yhat_full_story(:,end-buf_len:end-1);
+        story_len = size(DynOpt.Y_full_story,2);
+        if story_len > buf_len
+            DynOpt.buf_dY_last = DynOpt.Y_full_story(:,end-buf_len:end-1);
+            DynOpt.buf_dYhat_last = DynOpt.Yhat_full_story(:,end-buf_len:end-1);
+        else
+            DynOpt.buf_dY_last = [zeros(size(DynOpt.Y_full_story,1),buf_len-story_len), DynOpt.Y_full_story];
+            DynOpt.buf_dYhat_last = [zeros(size(DynOpt.Y_full_story,1),buf_len-story_len), DynOpt.Yhat_full_story];
+        end
         
         DynOpt.Y_last = DynOpt.Y;
         DynOpt.dY_last = DynOpt.dY;

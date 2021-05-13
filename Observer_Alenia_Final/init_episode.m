@@ -8,12 +8,12 @@ setup.RL = 1;
 % state duration and main setup
 setup.w = 5;
 setup.Nts = 3;
-setup.d = 0.1;
-setup.u_amp = pi/4;
+setup.d = 0;
+setup.u_amp = 0;
 % iteration
 RL.S.i = 1;
 % action
-RL.S.A(1,1) = setup.nMagneto;
+RL.S.A(:,1) = RL.A.domain_A(:,1);
 % initial attitude - true
 RL.S.satellites_attitude_true = (RL.E.domain_status(:,2)-RL.E.domain_status(:,1)).*rand(RL.E.dimState,1) + RL.E.domain_status(:,1);
 % initial attitude - est
