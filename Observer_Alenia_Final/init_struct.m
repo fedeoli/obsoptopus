@@ -88,8 +88,8 @@ setup.safety_density = 1;
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
 setup.adaptive = 1;
-setup.dJ_2 = setup.adaptive*5e-3;
-setup.dJ_1 = setup.adaptive*1e-3;
+setup.dJ_2 = setup.adaptive*1e-3;
+setup.dJ_1 = setup.adaptive*5e-4;
 
 %%%%% SCALE FACTOR %%%%%
 setup.y_end = 3;

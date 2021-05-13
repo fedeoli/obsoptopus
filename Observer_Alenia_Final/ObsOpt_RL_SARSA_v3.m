@@ -239,8 +239,8 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
         RL.S.search{s+1}.pi = RL.S.Q./sum(RL.S.Q,2);
         
         %%% show results
-        RL.S.Qval = plotQ(RL.S.Q,RL.E.domain_S);
-        pause(0.1)
+%         RL.S.Qval = plotQ(RL.S.Q,RL.E.domain_S);
+%         pause(0.1)
         
     end
     
