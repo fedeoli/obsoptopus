@@ -65,7 +65,8 @@ function plot_RL_v1(RL,s)
         linkaxes(ax,'x');
     end
     
-    for i=1:Nplot
+    i = 1;
+    while i<=Nplot
         % assign DynOpt
         DynOpt = RL.S.search{s}.DynOpt{i};
         if i>1
@@ -145,6 +146,13 @@ function plot_RL_v1(RL,s)
                 end
                 linkaxes(ax,'x');
             end
+        end
+        
+        fail_flag = strcmp(RL.S.search{s}.DynOpt{min(i+1,Nplot)},'failed run');
+        if fail_flag
+           i = Nplot+1; 
+        else
+           i = i+1;
         end
     end
 
