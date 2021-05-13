@@ -11,6 +11,7 @@ function plot_RL_v1(RL,s,flags)
     flag_att = flags(2);
     flag_eul = flags(3);
     flag_eul_err = flags(4);
+    flag_par = flags(5);
     
     %%% define here all the figures
     %%%%% angular velocity %%%%%
@@ -59,6 +60,19 @@ function plot_RL_v1(RL,s,flags)
             n_subplot = 3;
             ax(k)=subplot(n_subplot,1,k);
             ylabel(strcat('x_',num2str(k)));
+            xlabel('simulation time [s]')
+            grid on
+        end
+        linkaxes(ax,'x');
+    end
+    
+    %%%%% params %%%%%
+    if flag_par
+        par = figure('Name','Params estimation');
+        for k=1:1
+            n_subplot = 3;
+            ax(k)=subplot(n_subplot,1,k);
+            ylabel(strcat('P_',num2str(k)));
             xlabel('simulation time [s]')
             grid on
         end
@@ -142,6 +156,22 @@ function plot_RL_v1(RL,s,flags)
                     axes(handles(k));
                     hold on
                     plot(time,DynOpt.Opt_quat_runtime(offset+k,:),'r-',time,DynOpt.True_quat((offset+k),:),'b:','LineWidth' ,2);
+                    legend('Opt','True')
+                end
+                linkaxes(ax,'x');
+            end
+            
+            % Params
+            if flag_par
+                figure(par);
+                handles=flipud(findobj(par,'Type','axes'));
+                xlim([time_total(1) time_total(end)]);
+                hold on
+                for k=1:1
+                    axes(handles(k));
+                    interval = DynOpt.time(1)+1:DynOpt.time(end)+1;
+                    hold on
+                    plot(time,DynOpt.OptXstory_runtime(end+1-k,interval),'r-',time,DynOpt.OptXstoryTRUE((end+1-k),interval),'b:','LineWidth' ,2);
                     legend('Opt','True')
                 end
                 linkaxes(ax,'x');

@@ -22,10 +22,15 @@ function [params_out,DynOpt] = params_update_local_function(state,params,DynOpt)
         
         % inertia
         if DynOpt.inertia && DynOpt.optimise_params
-            params.sat(1).I(1,1) = state(end-2);
-            params.sat(1).I(2,2) = state(end-1);
-            params.sat(1).I(3,3) = state(end);
-            params.inertia = [params.sat(1).I(1,1); params.sat(1).I(2,2); params.sat(1).I(3,3)];
+  
+            % 1 inertia
+            params.sat(1).I(1,1) = state(end);
+            params.inertia = params.sat(1).I(1,1);
+            
+            % 3 inertias
+%             params.sat(1).I(2,2) = state(end-1);
+%             params.sat(1).I(3,3) = state(end);
+%             params.inertia = [params.sat(1).I(1,1); params.sat(1).I(2,2); params.sat(1).I(3,3)];
         else
             params.inertia = [];
         end

@@ -68,7 +68,11 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
     %%% PARAMETERS TO RECONSTRUCT %%%
     % uncomment to estimate inertia
     if DynOpt.inertia 
-        inertia = [params.sat(1).I(1,1); params.sat(1).I(2,2); params.sat(1).I(3,3)];
+        % 1 inertia
+        inertia = params.sat(1).I(1,1);
+        
+        % 3 inertias
+%         inertia = [params.sat(1).I(1,1); params.sat(1).I(2,2); params.sat(1).I(3,3)];
     else
         inertia = [];
     end

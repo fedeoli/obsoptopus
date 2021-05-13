@@ -139,8 +139,8 @@ setup.bias_enable = 0;
 setup.bias_mag_enable = 0;
 setup.optimise_params = 1;
 setup.nbias = 0;
-setup.nparams = 0;
-setup.inertia = 0;
+setup.nparams = 3;
+setup.inertia = 1;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 setup.noise_enable = 0;

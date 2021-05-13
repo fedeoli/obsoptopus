@@ -2,7 +2,7 @@
 function [setup,RL] = save_past_sat(setup,DynOpt,DynOpt_save,RL)
     %%% set correct initial condition for next step %%%
     offset = setup.integration_pos*6;
-    RL.S.S0 = DynOpt_save.OptXstory_runtime(offset+1:offset+7,end);
+    RL.S.S0 = DynOpt_save.OptXstory_runtime(offset+1:end,end);
     RL.S.satellites_iner_ECI_true = DynOpt_save.position_state(:,end);
     RL.S.satellites_attitude_true = DynOpt_save.attitude_state(:,end);
 
