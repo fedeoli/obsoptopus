@@ -204,18 +204,18 @@ if DynOpt.ObserverOn == 1
         DynOpt.WindowSamples = max(2,DynOpt.Nts*(DynOpt.w-1)+1);
 
         % measure derivative buffer
-        DynOpt.Y =  zeros(DynOpt.dim_out,DynOpt.w);
+        DynOpt.Y =  zeros(9,DynOpt.w);
         DynOpt.Ytrue_full_story = [];
         DynOpt.Y_full_story = [];
         DynOpt.Yhat_full_story = [];
 
         % measure derivative buffer
-        DynOpt.dY =  zeros(DynOpt.dim_out,DynOpt.w);
+        DynOpt.dY =  zeros(9,DynOpt.w);
         DynOpt.dY_full_story = [];
         DynOpt.dYhat_full_story = [];
 
         % measure integral buffer
-        DynOpt.intY =  zeros(DynOpt.dim_out,DynOpt.w);
+        DynOpt.intY =  zeros(9,DynOpt.w);
         DynOpt.intY_full_story = [];
         DynOpt.intYhat_full_story = [];
 
@@ -239,12 +239,9 @@ if DynOpt.ObserverOn == 1
         DynOpt.measure_exp = 1;
 
         % corrupted trajectory
-%         DynOpt.Xstory = zeros(length(DynOpt.X),length(DynOpt.time));
         DynOpt.Xstory(:,1) = DynOpt.X_init;
 
         % optimised trajectory
-%         DynOpt.OptXstory = zeros(length(DynOpt.X),length(DynOpt.time));
-%         DynOpt.OptXstory_runtime = zeros(length(DynOpt.X),length(DynOpt.time));
         DynOpt.OptXstory(:,1) = DynOpt.X;
         DynOpt.OptXstory_runtime(:,1) = DynOpt.X;
 

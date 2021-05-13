@@ -14,8 +14,9 @@ function Qval = plotQ(Q,domain_S)
     
     size_Q = [size(domain_S,2),size(domain_S,2)];
     Qval = reshape(Qval,size_Q);
-    bar3(Qval)
+%     bar3(Qval)
+    heatmap(Qval);
     xlabel('e')
     ylabel('edot')
-    zlabel('value')
+%     zlabel('value')
 end

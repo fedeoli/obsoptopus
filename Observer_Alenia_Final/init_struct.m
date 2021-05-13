@@ -29,7 +29,7 @@ setup.dim_out = 3+3*setup.nMagneto;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 1;
+setup.print = 0;
 setup.RL = 0;
 
 % montecarlo or single simulation

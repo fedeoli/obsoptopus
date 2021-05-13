@@ -21,8 +21,8 @@ function Y_noise = noise_model_v1(Y_true,DynOpt,params)
     
     % edit the data measurement
     gyrobias = b*ones(3,1);
-    magbias = params.MagnetoBias(1:3*DynOpt.nMagneto);
-    bias = [gyrobias;magbias];
+    bias = [gyrobias;params.MagnetoBias];
+
     Y_noise(:,1) = Y_true(:,1) + bias + eps_noise;
 
 end

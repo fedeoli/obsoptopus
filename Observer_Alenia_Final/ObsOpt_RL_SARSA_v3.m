@@ -52,15 +52,15 @@ function RL = ObsOpt_RL_SARSA_v3(Nsearch,Niter)
 
     %%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
     % check row stochastic
-%     RL.S.pi0 = rand(RL.E.domain_S_dim,RL.A.dimActions);
-    RL.S.pi0 = zeros(RL.E.domain_S_dim,RL.A.dimActions);
-    RL.S.pi0(:,end) = 1; 
+    RL.S.pi0 = rand(RL.E.domain_S_dim,RL.A.dimActions);
+%     RL.S.pi0 = zeros(RL.E.domain_S_dim,RL.A.dimActions);
+%     RL.S.pi0(:,end) = 1; 
     RL.S.pi0 = RL.S.pi0./sum(RL.S.pi0,2);
     RL.S.Q = 5e-2*RL.S.pi0;
     RL.S.search{1}.pi = RL.S.pi0;
       
     % greedy choice
-    RL.S.epsilon = 1;
+    RL.S.epsilon = 0.95;
     
     % reward storage
     RL.S.R = [];

@@ -153,11 +153,12 @@ if measure_flag == 1
 end
 
 %%%% 1 OUTPUT %%%%
+yhat = zeros(9,3);
 try 
     if(forward == 1)
-        yhat = [x_read, dy, y_int];
+        yhat(1:DynOpt.dim_out,:) = [x_read, dy, y_int(1:DynOpt.dim_out)];
     else
-        yhat = [x_read, -dy, y_int];
+        yhat(1:DynOpt.dim_out,:) = [x_read, -dy, y_int(1:DynOpt.dim_out)];
     end
 catch
    disp('ARARMAX');

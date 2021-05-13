@@ -1,5 +1,5 @@
 %% plot section 
-function plot_RL_v1(RL,s)
+function plot_RL_v1(RL,s,flags)
 
     % get number of iterations - RL
     setup = RL.S.setup;
@@ -7,10 +7,10 @@ function plot_RL_v1(RL,s)
     time_total = [];
     
     % plot flags
-    flag_vel_att = 1;
-    flag_att = 1;
-    flag_eul = 0;
-    flag_eul_err = 0;
+    flag_vel_att = flags(1);
+    flag_att = flags(2);
+    flag_eul = flags(3);
+    flag_eul_err = flags(4);
     
     %%% define here all the figures
     %%%%% angular velocity %%%%%
