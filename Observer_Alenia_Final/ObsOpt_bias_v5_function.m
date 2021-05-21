@@ -67,7 +67,7 @@ for k=1:length(DynOpt.time)
     DynOpt.intY_full_story(:,end+1) = Y_filter(:,3);
 
     % fisrt bunch of data - read Y every Nts and check if the signal is
-    [DynOpt, params] = dJ_cond_v4_function(DynOpt,params,DynOpt.theta,DynOpt.beta,DynOpt.gamma);
+    DynOpt = dJ_cond_v5_function(DynOpt);
     distance = DynOpt.ActualTimeIndex-DynOpt.Y_space(end);
     DynOpt.distance_safe_flag = (distance < DynOpt.safety_interval);
     %%%% select optimisation with hystheresis %%%%%
@@ -124,7 +124,7 @@ for k=1:length(DynOpt.time)
         DynOpt.temp_time = [DynOpt.temp_time k];
 
         cols_nonzeros = length(find(sum(DynOpt.Y~=0)==size(DynOpt.Y,1)));
-        if (cols_nonzeros < DynOpt.w) 
+        if 0 && (cols_nonzeros < DynOpt.w) 
             [DynOpt.buf_dyhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.Niter),0,measure_forward,DynOpt.buf_dyhat,DynOpt.intYhat_full_story,params,DynOpt.Niter);
             DynOpt.Yhat_full_story(:,end+1) = Yhat(:,1);
             DynOpt.dYhat_full_story(:,end+1) = Yhat(:,2);
@@ -226,11 +226,11 @@ for k=1:length(DynOpt.time)
                     DynOpt.opt_chosen_time = [DynOpt.opt_chosen_time k];
                     
                     % store J chunks
-                    DynOpt.J_meas(:,end+1) = DynOpt.J_meas_buf;
-                    DynOpt.J_der(:,end+1) = DynOpt.J_der_buf;
-                    DynOpt.J_int(:,end+1) = DynOpt.J_int_buf;
-                    DynOpt.J_dyn(:,end+1) = DynOpt.J_dyn_buf;
-                    DynOpt.J_quat(:,end+1) = DynOpt.J_quat_buf;
+                    DynOpt.J_meas(end+1) = DynOpt.J_meas_buf(end);
+                    DynOpt.J_der(end+1) = DynOpt.J_der_buf(end);
+                    DynOpt.J_int(end+1) = DynOpt.J_int_buf(end);
+                    DynOpt.J_dyn(end+1) = DynOpt.J_dyn_buf(end);
+                    DynOpt.J_quat(end+1) = DynOpt.J_quat_buf(end);
 
                     % counters
                     DynOpt.jump_flag = 0;
@@ -252,7 +252,7 @@ for k=1:length(DynOpt.time)
                         DynOpt.buf_dyhat_temp = DynOpt.Yhat_full_story(:,back_time-(DynOpt.d1_derivative-1):back_time);
                     else
                         init_pos = DynOpt.d1_derivative-back_time;
-                        DynOpt.buf_dyhat_temp = [zeros(DynOpt.dim_out,init_pos), DynOpt.Yhat_full_story(:,back_time-(back_time-1):back_time)];
+                        DynOpt.buf_dyhat_temp = [zeros(9,init_pos), DynOpt.Yhat_full_story(:,back_time-(back_time-1):back_time)];
                     end
 
                     %%%% ESTIMATED measurements
@@ -283,7 +283,7 @@ for k=1:length(DynOpt.time)
                             DynOpt.buf_dyhat_temp = DynOpt.Yhat_full_story(:,back_time-(DynOpt.d1_derivative-1):back_time);
                         else
                             init_pos = DynOpt.d1_derivative-back_time;
-                            DynOpt.buf_dyhat_temp = [zeros(DynOpt.dim_out,init_pos), DynOpt.Yhat_full_story(:,back_time-(back_time-1):back_time)];
+                            DynOpt.buf_dyhat_temp = [zeros(9,init_pos), DynOpt.Yhat_full_story(:,back_time-(back_time-1):back_time)];
                         end
 
                         %%%% ESTIMATED measurements

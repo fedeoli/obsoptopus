@@ -6,7 +6,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % clear
 if exist('RL','var')
-    keep RL s current_reward
+    keep RL s current_reward test_flag
     setup.load_mem = 0;
 else
     clear
@@ -25,7 +25,7 @@ setup.Ts = 1e0;
 % measurement dimension
 setup.nMagneto = 2;
 setup.RPYbetweenMagnetometers = 1*[0,0,90]*pi/180;
-setup.dim_out = 3+3*setup.nMagneto;
+setup.dim_out = 9;
 
 % plot and graphics
 setup.plot = 0;
@@ -88,8 +88,8 @@ setup.safety_density = 1;
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
 setup.adaptive = 1;
-setup.dJ_2 = setup.adaptive*1e-3;
-setup.dJ_1 = setup.adaptive*5e-4;
+setup.dJ_2 = setup.adaptive*5e-2;
+setup.dJ_1 = setup.adaptive*1e-2;
 
 %%%%% SCALE FACTOR %%%%%
 setup.y_end = 3;
@@ -143,7 +143,7 @@ setup.nparams = 3;
 setup.inertia = 1;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-setup.noise_enable = 0;
+setup.noise_enable = 1;
 setup.ErrorOnEA = 1;
 setup.rand_init = 0;
 % bias

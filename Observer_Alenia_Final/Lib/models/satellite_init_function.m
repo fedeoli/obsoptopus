@@ -22,7 +22,7 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
 
     %%% observation data %%%
     params.observed_state = DynOpt.integration_pos*6 + [5 6 7];
-    DynOpt.n_sensor = DynOpt.nMagneto;
+    DynOpt.n_sensor = 3;
 
     %%% state data %%%%
     if DynOpt.integration_pos == 1 && DynOpt.integration_att == 0
@@ -69,10 +69,10 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
     % uncomment to estimate inertia
     if DynOpt.inertia 
         % 1 inertia
-        inertia = params.sat(1).I(1,1);
+%         inertia = params.sat(1).I(1,1);
         
         % 3 inertias
-%         inertia = [params.sat(1).I(1,1); params.sat(1).I(2,2); params.sat(1).I(3,3)];
+        inertia = [params.sat(1).I(1,1); params.sat(1).I(2,2); params.sat(1).I(3,3)];
     else
         inertia = [];
     end

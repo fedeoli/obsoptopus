@@ -43,4 +43,7 @@ function [setup,RL] = save_past_sat(setup,DynOpt,DynOpt_save,RL)
     setup.mag_field_story_last = DynOpt.mag_field_story_last;
 
     setup.eps_noise_story_last = DynOpt.eps_noise_story_last;
+    
+    % track error
+    setup.buf_trackerr_last = DynOpt.buf_trackerr;
 end

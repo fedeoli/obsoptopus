@@ -129,6 +129,8 @@ end
 DynOpt.optimise_input = struct.optimise_input;
 DynOpt.optimise_params = struct.optimise_params;
 
+% set 0 Aw as default
+DynOpt.Aw = zeros(3,1);
 
 %%%%%%%%%%%%%%%% LOAD FROM RL IF REINFORCEMENT LEARNING %%%%%%%%%%%%%%%%%%%
 if struct.RL

@@ -69,7 +69,7 @@ function plot_RL_v1(RL,s,flags)
     %%%%% params %%%%%
     if flag_par
         par = figure('Name','Params estimation');
-        for k=1:1
+        for k=1:3
             n_subplot = 3;
             ax(k)=subplot(n_subplot,1,k);
             ylabel(strcat('P_',num2str(k)));
@@ -167,7 +167,7 @@ function plot_RL_v1(RL,s,flags)
                 handles=flipud(findobj(par,'Type','axes'));
                 xlim([time_total(1) time_total(end)]);
                 hold on
-                for k=1:1
+                for k=1:3
                     axes(handles(k));
                     interval = DynOpt.time(1)+1:DynOpt.time(end)+1;
                     hold on

@@ -46,7 +46,6 @@ DynOpt.rand_init = struct.rand_init;
 % observer setup
 DynOpt.ObserverOn = struct.ObserverOn;
 DynOpt.OptimisationOn = struct.OptimisationOn;
-DynOpt.scale_factor = struct.scale_factor;
 
 % starts finding the state/parameters backward, -1, (actual time t_k) or Forward, 1 (i.e. at time  t_{k-(w-1)*Nts}
 DynOpt.ForwardOptimization = struct.forward; 
@@ -54,7 +53,6 @@ DynOpt.ForwardOptimization = struct.forward;
 % measure noise
 DynOpt.noise_enable = struct.noise_enable;
 DynOpt.measure_amp = struct.noise_amp;
-DynOpt.nMagneto = struct.nMagneto;
 DynOpt.EulerAngleNoiseOnMag = struct.EulerAngleNoiseOnMag;
 
 % simulate the plant
@@ -65,13 +63,6 @@ DynOpt.wrap = @unwrap;
 
 % print option
 DynOpt.print = struct.print;
-
-% montecarlo flag
-DynOpt.montecarlo = struct.montecarlo;
-if DynOpt.montecarlo == 1
-    % state bounds
-    DynOpt.params_init = struct.params_init;
-end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% PLANT model and synthetic data
@@ -86,7 +77,6 @@ DynOpt.t_lowpass = 1;
 DynOpt.lowpass_pwm = struct.lowpass_pwm;
 
 %%%% OUTPUT SETUP %%%%
-DynOpt.dim_out = struct.dim_out;
 DynOpt.nbias = struct.nbias;
 DynOpt.inertia = struct.inertia;
 
@@ -167,6 +157,9 @@ if DynOpt.ObserverOn == 1
 
         % gradient buffer init
         DynOpt.buf_dyhat_grad = zeros(1,DynOpt.d1_derivative);
+        
+        % track error
+        DynOpt.buf_trackerr = zeros(3,DynOpt.d1_derivative);
 
         % cost function derivative
         DynOpt.J_c1_derivative = 6;
@@ -228,9 +221,6 @@ if DynOpt.ObserverOn == 1
         DynOpt.Y_space = zeros(1,DynOpt.w);
         DynOpt.Y_space_full_story = 0;
         DynOpt.sensor_stop_thresh = 1.5;
-        DynOpt.theta = struct.theta;
-        DynOpt.beta = struct.beta;
-        DynOpt.gamma = struct.gamma;
         DynOpt.else_flag = 0;
         DynOpt.safety_density = struct.safety_density;
         DynOpt.safety_interval = int32(DynOpt.safety_density*DynOpt.WindowSamples);
@@ -305,8 +295,6 @@ if DynOpt.ObserverOn == 1
     DynOpt.Bcon = [];
     DynOpt.Acon_eq = [];
     DynOpt.Bcon_eq = [];
-    DynOpt.lb = struct.lb;
-    DynOpt.ub = struct.ub;
     DynOpt.nonlcon = [];
     DynOpt.J_big = 0;
     % optimset
@@ -326,13 +314,6 @@ if DynOpt.ObserverOn == 1
         DynOpt.get_measure_name = 'get_measure_v5';
     end
     DynOpt.last_opt_time = 0;
-    % multistart
-    DynOpt.multistart = struct.multistart;
-    DynOpt.globalsearch = struct.globalsearch;
-    if DynOpt.multistart == 1
-        DynOpt.nstart = struct.nstart;
-        DynOpt.fmin_name = 'fmincon';
-    end
     % max function counts
     DynOpt.maxFcount = struct.maxFcount;
 
@@ -345,10 +326,7 @@ if DynOpt.ObserverOn == 1
     DynOpt.fmin = struct.fmin;
 
     % gradient descent
-    DynOpt.y_end = struct.y_end;
-    DynOpt.alpha_grad = struct.alpha_grad;
     DynOpt.max_iter = struct.max_iter;
-    DynOpt.grad_thresh = struct.grad_thresh;
     DynOpt.opt_time = 0;
 
     % filtering options
@@ -408,6 +386,8 @@ if DynOpt.ObserverOn == 1
         DynOpt.mag_field_story = [struct.mag_field_story_last, DynOpt.mag_field_story];
         
         DynOpt.eps_noise_story = [struct.eps_noise_story_last, DynOpt.eps_noise_story];
+        
+        DynOpt.buf_trackerr = struct.buf_trackerr_last;
     end
     
 %% Observer implementation 
@@ -451,6 +431,11 @@ if DynOpt.ObserverOn == 1
     
     %%% tracking error %%%
     DynOpt.track_err = DynOpt.Opt_quat_runtime - DynOpt.target_attitude;
+    for i = 1:size(DynOpt.track_err,2)
+        for j = 1:size(DynOpt.track_err,1)
+            [DynOpt.buf_trackerr, DynOpt.track_errdot(j,i)] = IterativePseudoDerivative(DynOpt.Ts,DynOpt.track_err(j,i),DynOpt.c1_derivative,DynOpt.d1_derivative,0,DynOpt.buf_trackerr);
+        end
+    end
       
     % performance
     DynOpt.lambda_min = DynOpt.lambda_min(2:end);

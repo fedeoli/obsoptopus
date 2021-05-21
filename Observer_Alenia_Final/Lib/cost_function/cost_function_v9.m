@@ -26,7 +26,7 @@ if DynOpt.BackIterIndex >= DynOpt.d1_derivative
     DynOpt.buf_dyhat_temp = DynOpt.Yhat_full_story(:,DynOpt.BackIterIndex-(DynOpt.d1_derivative-1):DynOpt.BackIterIndex);
 else
     init_pos = DynOpt.d1_derivative-DynOpt.BackIterIndex;
-    DynOpt.buf_dyhat_temp = [zeros(DynOpt.dim_out,init_pos), DynOpt.Yhat_full_story(:,DynOpt.BackIterIndex-(DynOpt.BackIterIndex-1):DynOpt.BackIterIndex)];
+    DynOpt.buf_dyhat_temp = [zeros(9,init_pos), DynOpt.Yhat_full_story(:,DynOpt.BackIterIndex-(DynOpt.BackIterIndex-1):DynOpt.BackIterIndex)];
 end
 
 % n_item = length(find(min(abs(DynOpt.Y),[],1)));
@@ -36,7 +36,7 @@ n_iter = n_item;
 if n_item == size(DynOpt.Y,2)
     shift = DynOpt.w-n_item;
 else
-    shift = n_item;
+    shift = DynOpt.w-n_item;
 end
 
 for j=1:n_iter

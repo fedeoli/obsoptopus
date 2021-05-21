@@ -4,24 +4,18 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     %%%%%%%%%%%%%%%%%%% SET INITIAL CONDITIONS FOR GREEDY %%%%%%%%%%%%%%%%%
     RL = DynOpt.RL;
 
-    %%%%%%%%%%%%% from the actions %%%%%%%%%%%%%%%%%%%
-    %%% actions %%%
-%     a_u = RL.S.A(1,RL.S.i);
-    
+    %%%%%%%%%%%%% from the actions %%%%%%%%%%%%%%%%%%%    
     %%% Magnetometers %%%
-%     DynOpt.nMagneto = RL.S.A(1,RL.S.i);
-%     DynOpt.dim_out = 3+3*DynOpt.nMagneto;
-%     DynOpt.measure_amp = DynOpt.measure_amp(1:DynOpt.dim_out);
-    
-    %%% Au %%%
-%     DynOpt.u_amp = DynOpt.u_amp + a_u;
+    DynOpt.nMagneto = 2*RL.S.A(1,RL.S.i);
+    DynOpt.dim_out = 3+3*DynOpt.nMagneto;
+    DynOpt.measure_amp = DynOpt.measure_amp(1:DynOpt.dim_out);
 
     %%% Aw %%%
-    DynOpt.Aw = RL.S.A(:,RL.S.i);
+    step = RL.A.step*sign(-RL.A.Aw_sign);
+    DynOpt.Aw = step*ones(3,1)*RL.S.A(2,RL.S.i);
 
     %%%%%%%%%%%%%%% from the state %%%%%%%%%%%%%%%%%%%%%%%%
     % generate state init
-    DynOpt.target_attitude = RL.S.T0;
     if RL.S.i > 1
         % true iner_ECI
         satellites_iner_ECI = RL.S.satellites_iner_ECI_true; 
@@ -55,12 +49,13 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     DynOpt.y_end = 3;
     DynOpt.nJ_nl = 2;
     %%%% bias values %%%%%
-    DynOpt.scale_factor_init = 1e0.*[1;1e-1;1*5e-2;0;5e-1].*ones(DynOpt.y_end+DynOpt.nJ_nl,DynOpt.dim_out);
+    DynOpt.scale_factor_init = 1e0.*[1;0;1*5e-2;1e-1;5e-1].*ones(DynOpt.y_end+DynOpt.nJ_nl,9);
+    DynOpt.scale_factor_init(:,DynOpt.dim_out+1:end) = 0;
     % memory factor
     % struct.lambda = [0.8; 1; 0.7; 1; 1];
     DynOpt.lambda = 1*[1; 1; 1; 1; 1];
     DynOpt.y_weight = [1*ones(1,3) 1*ones(1,3*DynOpt.nMagneto)];
-    DynOpt.scale_factor = zeros(DynOpt.w,DynOpt.y_end+DynOpt.nJ_nl,DynOpt.dim_out);
+    DynOpt.scale_factor = zeros(DynOpt.w,DynOpt.y_end+DynOpt.nJ_nl,9);
     for z = 1:DynOpt.w
         DynOpt.scale_factor(DynOpt.w+1-z,:,:) = DynOpt.scale_factor_init.*DynOpt.lambda.^(z-1);
     end
