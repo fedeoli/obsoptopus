@@ -160,7 +160,6 @@ if init_flag == 1
     %%%% get first nu and iner_ECI %%%%
     setup.Tend = 2;
     [DynOpt, ~] = ObsOpt_RL_v1_fun(setup);
-    nu = get_state_v2(DynOpt);
 
     %%%%%%%%%%%% random environment definition %%%%%%%%%%%%%%%%%%%%%%%%
     %%% ORBIT %%%

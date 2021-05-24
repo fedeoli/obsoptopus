@@ -18,12 +18,12 @@ function RL = ObsOpt_RL_SARSA_input_v2(Nsearch,test_flag, Q0, Niter)
     RL.E.dimTarget = size(RL.E.domain_target,1);
     
     %%% Environment state - nu %%%
-    N_elems = 10;
+    N_elems = 15;
     RL.E.domain_S_Ts = 1e-1;
     
     % automatic
-    domain_grid_1 = linspace(0,1e-1,N_elems); 
-    domain_grid_2 = linspace(0,5e-3,N_elems);
+    domain_grid_1 = linspace(0,5e-2,N_elems); 
+    domain_grid_2 = linspace(0,1e-2,N_elems);
     % manual
 %     domain_grid_1 = [0, 1e-3, 5e-2, 5e-1, 1]; 
 %     domain_grid_2 = [0, 5e-4, 1e-3, 5e-2, 5e-1];
@@ -97,6 +97,9 @@ function RL = ObsOpt_RL_SARSA_input_v2(Nsearch,test_flag, Q0, Niter)
     else
        RL.S.Niter = 0; 
     end
+    
+    % function approximation init
+    RL.S.w = zeros(1,2);
     
     %%%%%%%%%%% SEARCH PROCEDURE %%%%%%%%%%%%%%
     %%%%%%%%%%%% SARSA ALGORITHM  %%%%%%%%%%%%%

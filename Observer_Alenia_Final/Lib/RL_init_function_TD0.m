@@ -11,8 +11,9 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     DynOpt.measure_amp = DynOpt.measure_amp(1:DynOpt.dim_out);
 
     %%% Aw %%%
-    step = RL.A.step*sign(-RL.A.Aw_sign);
-    DynOpt.Aw = step*ones(3,1)*RL.S.A(2,RL.S.i);
+    % step = RL.A.step*sign(-RL.A.Aw_sign);
+    step = RL.A.step;
+    DynOpt.Aw = step*RL.S.A(2:4,RL.S.i);
 
     %%%%%%%%%%%%%%% from the state %%%%%%%%%%%%%%%%%%%%%%%%
     % generate state init
