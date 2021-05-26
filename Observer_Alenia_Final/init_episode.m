@@ -42,7 +42,7 @@ setup.integration_att = 1;
 
 %%%%% OBSERVER %%%%%
 setup.generate_plant = 1;
-setup.generate_orbit = 0;
+setup.generate_orbit = 1;
 setup.ObserverOn = 1;
 setup.Observer = 'OPT';
 setup.OptimisationOn = 1;
@@ -156,11 +156,7 @@ if init_flag == 1
     RL.S.T0 = (RL.E.domain_target(:,2)-RL.E.domain_target(:,1)).*rand(RL.E.dimTarget,1) + RL.E.domain_target(:,1);
     setup.RL_data = RL;
     setup.target_attitude = RL.S.T0;
-
-    %%%% get first nu and iner_ECI %%%%
-    setup.Tend = 2;
-    [DynOpt, ~] = ObsOpt_RL_v1_fun(setup);
-
+    
     %%%%%%%%%%%% random environment definition %%%%%%%%%%%%%%%%%%%%%%%%
     %%% ORBIT %%%
     ecc = (RL.E.domain_ecc(2)-RL.E.domain_ecc(1)).*rand(1) + RL.E.domain_ecc(1);
@@ -170,5 +166,14 @@ if init_flag == 1
     f0 = (RL.E.domain_f0(2)-RL.E.domain_f0(1)).*rand(1) + RL.E.domain_f0(1);
     T = (RL.E.domain_T(2)-RL.E.domain_T(1)).*rand(1) + RL.E.domain_T(1);
     RL.S.orbit(:,RL.S.i) = [ecc; inclination; om; RAAN; f0; T];
+    setup.orbit = RL.S.orbit(:,RL.S.i);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    %%%% get first nu and iner_ECI %%%%
+    setup.Tend = 2;
+    [DynOpt, ~] = ObsOpt_RL_v1_fun(setup);   
+else
+    % orbit
+    RL.S.orbit(:,RL.S.i) = RL.S.orbit(:,RL.S.i-1);
+    setup.orbit = RL.S.orbit(:,RL.S.i);
 end

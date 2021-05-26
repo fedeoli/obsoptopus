@@ -67,10 +67,6 @@ for j=1:n_iter
             J_der(i) = DynOpt.scale_factor(j,2,i)*(diff)^2;
         end
         
-        if sum(J_der) > 1e-6
-           a = 1; 
-        end
-        
         % integral
         n_int = DynOpt.dim_out;
         for i=1:n_int

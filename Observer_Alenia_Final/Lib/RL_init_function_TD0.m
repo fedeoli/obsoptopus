@@ -11,9 +11,19 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     DynOpt.measure_amp = DynOpt.measure_amp(1:DynOpt.dim_out);
 
     %%% Aw %%%
-    % step = RL.A.step*sign(-RL.A.Aw_sign);
-    step = RL.A.step;
-    DynOpt.Aw = step*RL.S.A(2:4,RL.S.i);
+    temp_Aw = zeros(3,1);
+    for i=1:3
+        if RL.S.A(i,RL.S.i) == 0
+            temp_Aw(i) = 0;
+        else
+            if RL.A.Aw_sign(i) ~= 0
+                temp_Aw(i) = -RL.S.A(i,RL.S.i)*RL.A.Aw_sign(i);
+            else
+                temp_Aw(i) = RL.S.A(i,RL.S.i);
+            end
+        end
+    end
+    DynOpt.Aw = RL.A.step*temp_Aw;
 
     %%%%%%%%%%%%%%% from the state %%%%%%%%%%%%%%%%%%%%%%%%
     % generate state init
@@ -65,9 +75,4 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     end
     clear z
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    %%%%% set orbit %%%%%
-    if DynOpt.generate_orbit
-        DynOpt.orbit = RL.S.orbit(:,RL.S.i);
-    end
 end

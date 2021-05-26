@@ -1,5 +1,5 @@
 %% greedy algorithm for trajectory optimisation
-function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
+function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
 
     %%%%%%%%%%% INIT SECTION %%%%%%%%%%    
     RL.S.Nsearch = Nsearch;
@@ -18,11 +18,11 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
     RL.E.dimTarget = size(RL.E.domain_target,1);
     
     %%% Orbit generation data %%%
-    RL.E.domain_ecc = [1e-4; 1.5e-4];
-    RL.E.domain_i = [0;pi/2];
-    RL.E.domain_om = [0;pi/2];
-    RL.E.domain_RAAN = [0;2*pi];
-    RL.E.domain_f0 = [0;2*pi];
+    RL.E.domain_ecc = [1.2720e-04; 1.2720e-04];
+    RL.E.domain_i = 1*[98.1829*pi/180; 98.1829*pi/180];
+    RL.E.domain_om = 1*[85.7508*pi/180;85.7508*pi/180];
+    RL.E.domain_RAAN = 1*[208.3314*pi/180;208.3314*pi/180];
+    RL.E.domain_f0 = 1*[0*pi/180;0*pi/180];
     RL.E.domain_T = [5.5e3;6.5e3];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -41,7 +41,6 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
        
     %%% number of actions field %%%
     RL.A.nActions = 4;
-    RL.A.dimActions = RL.A.dimAw*RL.A.dimMagneto;  
     temp = permn(0:RL.A.nActions-1,RL.A.nActions)';
     [ ~ , pos_false] = find(temp(1,:) > 1);
     temp(:,pos_false) = [];
@@ -50,6 +49,7 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
         temp(:,pos_false) = [];
     end
     RL.A.domain_A = temp;
+    RL.A.dimActions = size(RL.A.domain_A,2);  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 
     %%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
@@ -57,7 +57,7 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
     if test_flag
         RL.S.epsilon = 1;
     else
-        RL.S.epsilon = 0.95;
+        RL.S.epsilon = 0.8;
     end
         
     % reward storage
@@ -65,8 +65,9 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
     current_reward = 0;
     
     % algorithm params
-    RL.S.alpha = 0.1;
+    RL.S.alpha = 0.1e-2;
     RL.S.gamma = 0.5;
+    RL.S.lambda = lambda;
     
     % first RL assignmement
     setup.RL_data = RL;
@@ -103,23 +104,17 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
         % save setup
         RL.S.setup = setup;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    
-        %%% select action from policy - A
-        RL.S.p(1) = rand(1);
-        if RL.S.p(1) < RL.S.epsilon
-            q_val = zeros(1,RL.A.dimActions);
-            for a=1:RL.A.dimActions
-                q_val(a) = q_fun(nu,a,RL.S.w);
-            end
-            RL.S.action_pos = find(q_val == max(q_val),1,'first');
-            RL.S.A(:,1) = RL.A.domain_A(:,RL.S.action_pos);
-        else
-            RL.S.action_pos = randi(RL.A.dimActions);
-            RL.S.A(:,1) = RL.A.domain_A(:,RL.S.action_pos);
-        end
         
         % single episode
         RL.S.i = 1;
+        
+        % elegibility traces
+        RL.S.z = zeros(7,1);
+        Vold = 0;
+        
+        % init action
+        RL.S.action_pos(1) = randi(RL.A.dimActions);
+        RL.S.A(:,1) = RL.A.domain_A(:,RL.S.action_pos(1));
         
         % SARSA loop
         while (terminal == 0) && (test_flag == 0) || ((RL.S.i < RL.S.Niter) && (test_flag == 1))
@@ -130,7 +125,7 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
             % store current state
             nu = get_state_v2(DynOpt);
             RL.S.N_state(:,i) = nu;
-
+            
             %%% display info %%%
             clc
             if test_flag
@@ -179,43 +174,45 @@ function RL = ObsOpt_RL_SARSA_FA(Nsearch,test_flag, w0, Niter)
             %%% evaluate reward and next state %%
             nu_R = get_state_v2(DynOpt);
             terminal = isterminal(nu_R);
-            if terminal
+            if terminal == 1
                 current_reward = 0;
             else
                 current_reward = -1;
             end
             RL.S.R(i) = current_reward;
-
+            
             %%% select action from policy - A'
-            RL.S.p(i) = rand(1);
-            if RL.S.p(i) < RL.S.epsilon
+            RL.S.p(1) = rand(1);
+            if RL.S.p(1) < RL.S.epsilon
                 q_val = zeros(1,RL.A.dimActions);
                 for a=1:RL.A.dimActions
                     q_val(a) = q_fun(nu_R,a,RL.S.w);
                 end
-                pos_1 = find(q_val == max(q_val),1,'first');
+                action_pos = find(q_val == max(q_val),1,'first');
+                action_next = RL.A.domain_A(:,action_pos);
             else
-                pos_1 = randi(RL.A.dimActions);
+                action_pos = randi(RL.A.dimActions);
+                action_next = RL.A.domain_A(:,action_pos);
             end
-            A_1 = RL.A.domain_A(:,pos_1);
-            action_next_pos = pos_1;    
-            action_next = A_1;
-
-            %%% TD0 update value function %%%
+            
+            %%% TD store data %%%
             if ~test_flag
-                try
-                RL.S.w = RL.S.w + RL.S.alpha*(current_reward + RL.S.gamma*q_fun(nu_R,action_next_pos,RL.S.w) - q_fun(nu,RL.S.action_pos,RL.S.w))*[nu;RL.S.action_pos];
-                catch
-                   a=1; 
-                end
+                x = [nu;RL.S.action_pos(i)];
+                x_R = [nu_R;action_pos];
+                V = transpose(RL.S.w)*x;
+                V_R = transpose(RL.S.w)*x_R;
+                delta = current_reward + RL.S.gamma*V_R - V;
+                RL.S.z = RL.S.gamma*RL.S.lambda*RL.S.z + (1-RL.S.alpha*RL.S.gamma*RL.S.lambda*transpose(RL.S.z)*x)*x;
+                RL.S.w = RL.S.w + RL.S.alpha*(delta + V - Vold)*RL.S.z - RL.S.alpha*(V - Vold)*x;
+                Vold = V_R;
             end
-
-            %%% update action %%%
-            RL.S.action_pos = action_next_pos;
-            RL.S.A(:,i+1) = action_next;
             
             % update iter %
             RL.S.i = RL.S.i + 1;
+            
+            % update action
+            RL.S.action_pos(i+1) = action_pos;
+            RL.S.A(:,i+1) = action_next;
             
             if fail_flag == 0
                 %%% FOR SATELLITES ONLY - NOT GENERAL %%%

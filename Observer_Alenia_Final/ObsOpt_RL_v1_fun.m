@@ -120,6 +120,11 @@ DynOpt.optimise_params = struct.optimise_params;
 % set 0 Aw as default
 DynOpt.Aw = zeros(3,1);
 
+%%%%% set orbit %%%%%
+if DynOpt.generate_orbit
+    DynOpt.orbit = struct.orbit;
+end
+
 if struct.RL
    DynOpt.RL = struct.RL_data;
    [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0(DynOpt,params,satellites_iner_ECI);
@@ -152,8 +157,8 @@ if DynOpt.ObserverOn == 1
         DynOpt.d1_derivative = 3;
 
         % buffer init
-        DynOpt.buf_dy = zeros(DynOpt.dim_out,DynOpt.d1_derivative);
-        DynOpt.buf_dyhat = zeros(DynOpt.dim_out,DynOpt.d1_derivative);
+        DynOpt.buf_dy = zeros(9,DynOpt.d1_derivative);
+        DynOpt.buf_dyhat = zeros(9,DynOpt.d1_derivative);
 
         % gradient buffer init
         DynOpt.buf_dyhat_grad = zeros(1,DynOpt.d1_derivative);
@@ -307,11 +312,11 @@ if DynOpt.ObserverOn == 1
     DynOpt.cost_function = @cost_function_v9;
     DynOpt.cost_function_name = 'cost_function_v9';
     if strcmp(struct.Observer,'EKF')
-        DynOpt.get_measure = @get_measure_v5_function;
-        DynOpt.get_measure_name = 'get_measure_v5';
+        DynOpt.get_measure = @get_measure_v6_function;
+        DynOpt.get_measure_name = 'get_measure_v6';
     elseif strcmp(struct.Observer,'OPT')
-        DynOpt.get_measure = @get_measure_v5_function;
-        DynOpt.get_measure_name = 'get_measure_v5';
+        DynOpt.get_measure = @get_measure_v6_function;
+        DynOpt.get_measure_name = 'get_measure_v6';
     end
     DynOpt.last_opt_time = 0;
     % max function counts
