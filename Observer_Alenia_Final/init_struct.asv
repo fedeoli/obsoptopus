@@ -82,13 +82,13 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 100;
+setup.max_iter = 200;
 setup.maxFcount = Inf;
 setup.safety_density = 1;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-setup.adaptive = 0;
+setup.adaptive = 1;
 setup.dJ_2 = setup.adaptive*5e-2;
 setup.dJ_1 = setup.adaptive*1e-2;
 
@@ -139,10 +139,10 @@ setup.forward = 1;
 setup.bias_dyn = 0;
 setup.bias_enable = 0;
 setup.bias_mag_enable = 0;
-setup.optimise_params = 0;
+setup.optimise_params = 1;
 setup.nbias = 0;
-setup.nparams = 0;
-setup.inertia = 0;
+setup.nparams = 3;
+setup.inertia = 1;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 setup.noise_enable = 1;

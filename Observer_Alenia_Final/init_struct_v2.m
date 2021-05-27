@@ -139,10 +139,10 @@ setup.forward = 1;
 setup.bias_dyn = 0;
 setup.bias_enable = 0;
 setup.bias_mag_enable = 0;
-setup.optimise_params = 0;
+setup.optimise_params = 1;
 setup.nbias = 0;
-setup.nparams = 0;
-setup.inertia = 0;
+setup.nparams = 3;
+setup.inertia = 1;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 setup.noise_enable = 1;
@@ -164,21 +164,6 @@ setup.bias_tot = setup.bias;
 % measures
 setup.EulerAngleNoiseOnMag = 0*setup.noise_enable*1e-2;
 setup.noise_amp = 1*setup.noise_enable*[1*1e-4*ones(3,1); 1*1e-4*ones(3*setup.nMagneto,1)];
-%%%% STATE %%%%
-if setup.integration_pos == 1 && setup.integration_att == 1
-    % POS + ATT
-    setup.init_error_amp = 1*setup.noise_enable*[0*ones(3,1); 0*ones(3,1); 20*ones(4,1); 5*ones(3,1)];
-elseif setup.integration_pos == 1 && setup.integration_att == 0
-    % POS
-    setup.init_error_amp = 1*setup.noise_enable*[1e1*ones(3,1); 5e-1*ones(3,1)];
-else
-    % ATT (errors in percentage)
-    setup.init_error_amp = 1*setup.noise_enable*[40*ones(4,1); 10*ones(3,1)];
-end
-%%%% PARAMS %%%%
-setup.ParamsAllPos = 1;
-setup.init_param_error_amp = 1*setup.noise_enable*ones(1,setup.nparams)*50;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%% MODEL %%%%%

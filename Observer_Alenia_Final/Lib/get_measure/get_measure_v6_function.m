@@ -79,7 +79,7 @@ if measure_flag == 0
                 [buf_dy(k,:), dy(k)] = IterativePseudoDerivative(DynOpt.Ts,y_read(k),DynOpt.c1_derivative,DynOpt.d1_derivative,0,buf_dy(k,:));
             end  
             % wdot through the model (for param estimation)
-            dy(1:3) = xdot(5:7);
+%             dy(1:3) = xdot(5:7);
             
             % integral initial condition
             y_int = zeros(9,1);

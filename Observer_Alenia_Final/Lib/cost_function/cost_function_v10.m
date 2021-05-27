@@ -1,5 +1,5 @@
 %% cost function
-function [Jtot,DynOpt] = cost_function_v9(x,params,DynOpt)
+function [Jtot,DynOpt] = cost_function_v10(x,params,DynOpt)
 
 % cost function init
 Jtot = 0;
@@ -78,18 +78,9 @@ for j=1:n_iter
             J_int(i) = DynOpt.scale_factor(j,3,i)*(diff)^2;
         end
         
-        % J dynamics
-        X_meas = X();
-        Yhat_meas = get_measure_dyn_v1_function(DynOpt,X_meas,j,1,params);
-        n_int = 3;
-        for i=1:n_int
-            diff = (DynOpt.dY(i,shift+j)-Yhat_meas(4+i));
-            J_dyn(i) = DynOpt.scale_factor(j,4,i)*(diff)^2;
-        end
-        
         % normalised quaternion
         quatnorm_val = quatnorm(X(offset+1:offset+4)');
-        J_quat = DynOpt.scale_factor(j,5,i)*(1-quatnorm_val)^2;
+        J_quat = DynOpt.scale_factor(j,4,i)*(1-quatnorm_val)^2;
         
         Jtot = Jtot + sum(J_meas) + sum(J_der) + sum(J_int) + sum(J_dyn) + J_quat;% + J_temp; 
         

@@ -86,9 +86,7 @@ function [DynOpt,params] = synthetic_integration_v3(DynOpt,params,struct,satelli
         DynOpt.True_quat = DynOpt.wrap(quat2eul(DynOpt.attitude_state(1:4,:)'))';
 
         %%%%%%% STORE MEASUREMENTS %%%%%
-    %     DynOpt.eps_noise_story = DynOpt.measure_amp*randn(length(params.observed_state),DynOpt.Niter);
-        DynOpt.eps_noise_story = zeros(9,DynOpt.Niter);
-        DynOpt.eps_noise_story(1:DynOpt.dim_out,:) = DynOpt.measure_amp.*randn(DynOpt.dim_out,DynOpt.Niter);
+        DynOpt.eps_noise_story(1:9,:) = DynOpt.measure_amp.*randn(9,DynOpt.Niter);
 
         % set synthetic data flag
         DynOpt.synthetic_int = 0;

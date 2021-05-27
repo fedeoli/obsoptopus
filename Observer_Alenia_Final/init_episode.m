@@ -1,12 +1,10 @@
 %% init episode for RL
+
 %%% workspace %%%
 % clear
-if exist('RL','var')
-    keep RL s current_reward test_flag init_flag
-    setup.load_mem = 0;
-else
-    clear
-end
+keep RL s current_reward test_flag init_flag       
+
+setup.load_mem = 0;
 clc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% DYNOPT INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,7 +40,7 @@ setup.integration_att = 1;
 
 %%%%% OBSERVER %%%%%
 setup.generate_plant = 1;
-setup.generate_orbit = 1;
+setup.generate_orbit = 0;
 setup.ObserverOn = 1;
 setup.Observer = 'OPT';
 setup.OptimisationOn = 1;
@@ -60,7 +58,7 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 20;
+setup.max_iter = 60;
 setup.maxFcount = Inf;
 setup.safety_density = 1;
 
@@ -75,7 +73,8 @@ setup.fcon_flag = 0;
 if setup.fcon_flag == 1
     setup.fmin = @fmincon;
 else
-    setup.fmin = @fminsearch;
+%     setup.fmin = @fminsearch;
+    setup.fmin = @fminunc;
 end
 
 %%%%% INTEGRATION %%%%%
@@ -111,9 +110,9 @@ if init_flag == 1
     setup.bias_dyn = 0;
     setup.bias_enable = 0;
     setup.bias_mag_enable = 0;
-    setup.optimise_params = 1;
-    setup.nparams = 3;
-    setup.inertia = 1;
+    setup.optimise_params = 0;
+    setup.nparams = 0;
+    setup.inertia = 0;
     % bias
     if setup.bias_enable 
         setup.bias = 1*ones(3,1)*5*pi/180; 
@@ -133,7 +132,7 @@ if init_flag == 1
     %%%% STATE %%%%
     if setup.integration_pos == 1 && setup.integration_att == 1
         % POS + ATT
-        setup.init_error_amp = 1*setup.noise_enable*[0*ones(3,1); 0*ones(3,1); 20*ones(4,1); 5*ones(3,1)];
+        setup.init_error_amp = 1*setup.noise_enable*[0*ones(3,1); 0*ones(3,1); 20*ones(4,1); 0*ones(3,1)];
     elseif setup.integration_pos == 1 && setup.integration_att == 0
         % POS
         setup.init_error_amp = 1*setup.noise_enable*[1e1*ones(3,1); 5e-1*ones(3,1)];
@@ -156,7 +155,7 @@ if init_flag == 1
     RL.S.T0 = (RL.E.domain_target(:,2)-RL.E.domain_target(:,1)).*rand(RL.E.dimTarget,1) + RL.E.domain_target(:,1);
     setup.RL_data = RL;
     setup.target_attitude = RL.S.T0;
-    
+
     %%%%%%%%%%%% random environment definition %%%%%%%%%%%%%%%%%%%%%%%%
     %%% ORBIT %%%
     ecc = (RL.E.domain_ecc(2)-RL.E.domain_ecc(1)).*rand(1) + RL.E.domain_ecc(1);

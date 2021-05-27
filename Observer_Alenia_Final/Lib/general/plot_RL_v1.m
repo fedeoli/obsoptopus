@@ -155,7 +155,7 @@ function plot_RL_v1(RL,s,flags)
                     offset = 0;
                     axes(handles(k));
                     hold on
-                    plot(time,DynOpt.Opt_quat_runtime(offset+k,:),'r-',time,DynOpt.True_quat((offset+k),:),'b:','LineWidth' ,2);
+                    plot(time,DynOpt.Opt_quat_runtime(offset+k,:)*180/pi,'r-',time,DynOpt.True_quat((offset+k),:)*180/pi,'b:','LineWidth' ,2);
                     legend('Opt','True')
                 end
                 linkaxes(ax,'x');

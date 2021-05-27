@@ -139,6 +139,9 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
     
     % save ObserverTest
     DynOpt.ObserverTest = ObserverTest;
+    
+    % dim out
+    DynOpt.dim_out  = 9;
 end
 
 
