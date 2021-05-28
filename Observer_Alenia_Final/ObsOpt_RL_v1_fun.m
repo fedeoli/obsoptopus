@@ -189,26 +189,6 @@ if DynOpt.ObserverOn == 1
 
         % init state
         % estimated attitude
-%         if struct.RL == 1
-%             if DynOpt.RL.S.i > 1
-%                 satellites_attitude_est = DynOpt.RL.S.S0(1:7);
-%                 param_init = DynOpt.RL.S.S0(8:end);
-%             else
-%                 attitude_eul_est =  DynOpt.RL.S.S0(1:3);
-%                 satellites_attitude_est = [transpose(eul2quat(transpose(attitude_eul_est))); DynOpt.RL.S.S0(4:end)];
-%                 param_init = (1+1e-2*transpose(struct.init_param_error_amp).*ones(length(DynOpt.param_estimate),1)).*DynOpt.Xtrue(DynOpt.StateDim+1:DynOpt.StateDim+DynOpt.nparams);
-%             end
-%         else
-%             domain_status = [-pi/30*ones(3,1), pi/30*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
-%             dimState = size(domain_status,1);
-%             satellites_attitude_est = (domain_status(:,2)-domain_status(:,1)).*rand(dimState,1) + domain_status(:,1);
-%             satellites_attitude_est_quat = [eul2quat(satellites_attitude_est(1:3)')'; satellites_attitude_est(4:end)];
-%             param_init = (1+1e-2*transpose(struct.init_param_error_amp).*ones(length(DynOpt.param_estimate),1)).*DynOpt.Xtrue(DynOpt.StateDim+1:DynOpt.StateDim+DynOpt.nparams);
-%         end
-%         offset = DynOpt.integration_pos*6;
-%         pos_init = DynOpt.Xtrue(1:offset);
-%         DynOpt.X  = [pos_init; satellites_attitude_est_quat; param_init];   
-%         DynOpt.X_init = DynOpt.X;
         DynOpt.X_init = 1.5*DynOpt.Xtrue;
         DynOpt.X = DynOpt.X_init;
         DynOpt.Xtrue_init = DynOpt.Xtrue;

@@ -19,7 +19,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % simulation time
 setup.t_start = 0;
-setup.Tend = 100;
+setup.Tend = 300;
 setup.Ts = 1e0;
 
 % measurement dimension
@@ -29,7 +29,7 @@ setup.dim_out = 9;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 1;
+setup.print = 0;
 setup.RL = 0;
 setup.load_mem = 0;
 
@@ -88,9 +88,9 @@ setup.safety_density = 1;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-setup.adaptive = 0;
-setup.dJ_2 = setup.adaptive*5e-2;
-setup.dJ_1 = setup.adaptive*1e-2;
+setup.adaptive = 1;
+setup.dJ_2 = setup.adaptive*5e-3;
+setup.dJ_1 = setup.adaptive*1e-3;
 
 % optimisation
 setup.fcon_flag = 1;

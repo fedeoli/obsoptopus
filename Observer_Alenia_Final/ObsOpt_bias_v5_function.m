@@ -67,7 +67,7 @@ for k=1:length(DynOpt.time)
     DynOpt.intY_full_story(:,end+1) = Y_filter(:,3);
 
     % fisrt bunch of data - read Y every Nts and check if the signal is
-    DynOpt = dJ_cond_v5_function(DynOpt);
+    DynOpt = dJ_cond_v5_function(DynOpt,params);
     distance = DynOpt.ActualTimeIndex-DynOpt.Y_space(end);
     DynOpt.distance_safe_flag = (distance < DynOpt.safety_interval);
     %%%% select optimisation with hystheresis %%%%%
