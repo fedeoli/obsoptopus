@@ -149,12 +149,12 @@ function plot_section_v5(DynOpt,params)
                         hold on
                         % results
                         try
-                            plot(DynOpt.time,DynOpt.Opt_quat_runtime(k,:),'-',DynOpt.time,DynOpt.True_quat(k,:),':','LineWidth' ,2);
+                            plot(DynOpt.time,DynOpt.Opt_quat_runtime(k,:)*180/pi,'-',DynOpt.time,DynOpt.True_quat(k,:)*180/pi,':','LineWidth' ,2);
                         catch
-                            plot(DynOpt.time,DynOpt.Opt_quat(k,:),'-',DynOpt.time,DynOpt.True_quat(k,:),':','LineWidth' ,2);
+                            plot(DynOpt.time,DynOpt.Opt_quat(k,:)*180/pi,'-',DynOpt.time,DynOpt.True_quat(k,:)*180/pi,':','LineWidth' ,2);
                         end
                         % reference
-                        plot(DynOpt.time(1:length(DynOpt.desatt_true(k,:))),DynOpt.desatt_true(k,:),'r--','LineWidth' ,2);
+                        plot(DynOpt.time(1:length(DynOpt.desatt_true(k,:))),DynOpt.desatt_true(k,:)*180/pi,'r--','LineWidth' ,2);
                         ylabel(strcat('X_',num2str(k),' [rad]'));
                         xlabel('simulation time [s]')
                         grid on
@@ -193,11 +193,31 @@ function plot_section_v5(DynOpt,params)
             end
 
             % Param estimate
+            %%% bias
             figure('Name','Param estimate')
             n_param = length(params.param_estimate);
-            for k=1:n_param
-                n_subplot = n_param;
+            for k=1:n_param-3
+                n_subplot = n_param-3;
                 ax_index = k;
+                ax(ax_index)=subplot(n_subplot,1,ax_index);
+                hold on
+                try
+                    plot(DynOpt.time,DynOpt.OptXstory_runtime(DynOpt.StateDim+k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((DynOpt.StateDim+k),:),':','LineWidth' ,2);
+                catch
+                    plot(DynOpt.time,DynOpt.OptXstory(DynOpt.StateDim+k,:),'-',DynOpt.time,DynOpt.OptXstoryTRUE((DynOpt.StateDim+k),:),':','LineWidth' ,2);
+                end
+                ylabel(strcat('P_',num2str(k),' [rad/s]'));
+                xlabel('simulation time [s]');
+                grid on
+                legend('Opt','True')
+            end
+            linkaxes(ax,'x');
+            %%% inertias
+            figure('Name','Param estimate - I')
+            n_param = length(params.param_estimate);
+            for k=n_param-2:n_param
+                n_subplot = 3;
+                ax_index = k-n_param+3;
                 ax(ax_index)=subplot(n_subplot,1,ax_index);
                 hold on
                 try

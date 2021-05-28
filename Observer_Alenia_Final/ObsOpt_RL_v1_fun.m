@@ -130,6 +130,7 @@ if struct.RL
    [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0(DynOpt,params,satellites_iner_ECI);
 else
     DynOpt.nMagneto = struct.nMagneto;
+    DynOpt.dim_out = 3+3*DynOpt.nMagneto;
     DynOpt = scale_factor(DynOpt);
 end
 
@@ -279,7 +280,6 @@ if DynOpt.ObserverOn == 1
         DynOpt.J_meas = ones(DynOpt.dim_out,1);
         DynOpt.J_der = ones(DynOpt.dim_out,1);
         DynOpt.J_int = ones(DynOpt.dim_out,1);
-        DynOpt.J_dyn = ones(DynOpt.dim_out,1);
         DynOpt.J_quat = ones(DynOpt.dim_out,1);
         DynOpt.temp_time = [];
         DynOpt.opt_chosen_time = [];
@@ -436,7 +436,6 @@ if DynOpt.ObserverOn == 1
     DynOpt.J_meas = DynOpt.J_meas(:,2:end);
     DynOpt.J_der = DynOpt.J_der(:,2:end);
     DynOpt.J_int = DynOpt.J_int(:,2:end);
-    DynOpt.J_dyn = DynOpt.J_dyn(:,2:end);
     DynOpt.J_quat = DynOpt.J_quat(:,2:end);
     DynOpt.dJ_cond_story = DynOpt.dJ_cond_story(:,2:end);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -94,9 +94,6 @@ for j=1:n_iter
         if ~isnan(sum(J_int)) && ~isinf(sum(J_int))
             DynOpt.J_int_buf = J_int;
         end
-        if ~isnan(sum(J_dyn)) && ~isinf(sum(J_dyn))
-            DynOpt.J_dyn_buf = J_dyn;
-        end
         if ~isnan(sum(J_int)) && ~isinf(sum(J_int))
             DynOpt.J_quat_buf = J_quat;
         end

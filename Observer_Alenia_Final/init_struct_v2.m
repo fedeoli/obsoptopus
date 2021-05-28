@@ -63,7 +63,7 @@ setup.input_tuning = 0;
 %%%%% OBSERVING INPUT %%%%%
 setup.control = 1;
 setup.u_amp = 1*pi/4;
-setup.d = 0.1;
+setup.d = 0.2;
 setup.T = 100;
 setup.u_freq = 1/setup.T;
 setup.target_attitude = 0*[1; 1; 1];
@@ -92,24 +92,6 @@ setup.adaptive = 0;
 setup.dJ_2 = setup.adaptive*5e-2;
 setup.dJ_1 = setup.adaptive*1e-2;
 
-%%%%% SCALE FACTOR %%%%%
-setup.y_end = 3;
-setup.nJ_nl = 2;
-%%%% bias values %%%%%
-setup.scale_factor_init = 1e0.*[1;1e-1;0*5e-2;0;5e-1].*ones(setup.y_end+setup.nJ_nl,setup.dim_out);
-% memory factor
-% setup.lambda = [0.8; 1; 0.7; 1; 1];
-setup.lambda = 1*[1; 1; 1; 1; 1];
-setup.y_weight = [1*ones(1,3) 1*ones(1,3*setup.nMagneto)];
-setup.scale_factor = zeros(setup.w,setup.y_end+setup.nJ_nl,setup.dim_out);
-for z = 1:setup.w
-    setup.scale_factor(setup.w+1-z,:,:) = setup.scale_factor_init.*setup.lambda.^(z-1);
-end
-for z = 1:setup.dim_out
-    setup.scale_factor(:,:,z) = setup.scale_factor(:,:,z)*setup.y_weight(z);
-end
-clear z
-
 % optimisation
 setup.fcon_flag = 1;
 if setup.fcon_flag == 0
@@ -137,11 +119,11 @@ setup.forward = 1;
 
 %%%%% BIAS %%%%%
 setup.bias_dyn = 0;
-setup.bias_enable = 0;
+setup.bias_enable = 1;
 setup.bias_mag_enable = 0;
 setup.optimise_params = 1;
-setup.nbias = 0;
-setup.nparams = 3;
+setup.nbias = 3;
+setup.nparams = 6;
 setup.inertia = 1;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,15 +137,15 @@ else
     setup.bias = zeros(3,1);
 end
 if setup.bias_mag_enable 
-    setup.bias_mag = 1*abs(1e-4*randn(3*setup.nMagneto,1)+1e-3);
+    setup.bias_mag = 1*abs(1e-4*randn(6,1)+1e-3);
 else
-    setup.bias_mag = zeros(3*setup.nMagneto,1);
+    setup.bias_mag = zeros(6,1);
 end
 setup.bias_tot = setup.bias;
 
 % measures
 setup.EulerAngleNoiseOnMag = 0*setup.noise_enable*1e-2;
-setup.noise_amp = 1*setup.noise_enable*[1*1e-4*ones(3,1); 1*1e-4*ones(3*setup.nMagneto,1)];
+setup.noise_amp = 1*setup.noise_enable*[1*1e-4*ones(3,1); 1*1e-4*ones(6,1)];
 
 
 %%%%% MODEL %%%%%

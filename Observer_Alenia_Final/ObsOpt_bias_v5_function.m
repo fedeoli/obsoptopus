@@ -226,11 +226,10 @@ for k=1:length(DynOpt.time)
                     DynOpt.opt_chosen_time = [DynOpt.opt_chosen_time k];
                     
                     % store J chunks
-                    DynOpt.J_meas(end+1) = DynOpt.J_meas_buf(end);
-                    DynOpt.J_der(end+1) = DynOpt.J_der_buf(end);
-                    DynOpt.J_int(end+1) = DynOpt.J_int_buf(end);
-                    DynOpt.J_dyn(end+1) = DynOpt.J_dyn_buf(end);
-                    DynOpt.J_quat(end+1) = DynOpt.J_quat_buf(end);
+                    DynOpt.J_meas(:,end+1) = DynOpt.J_meas_buf;
+                    DynOpt.J_der(:,end+1) = DynOpt.J_der_buf;
+                    DynOpt.J_int(:,end+1) = DynOpt.J_int_buf;
+                    DynOpt.J_quat(:,end+1) = DynOpt.J_quat_buf;
 
                     % counters
                     DynOpt.jump_flag = 0;

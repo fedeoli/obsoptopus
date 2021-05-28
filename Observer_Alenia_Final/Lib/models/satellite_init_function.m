@@ -62,7 +62,7 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
     params.RW_var_mag = 1*3e-7;
     params.RW_mean = 0;
     params.RW_mean_mag = 0;
-    DynOpt.RW_mem = zeros(DynOpt.Niter,DynOpt.nparams);
+    DynOpt.RW_mem = zeros(DynOpt.Niter,DynOpt.nbias);
     params.mu_bias = 0;
 
     %%% PARAMETERS TO RECONSTRUCT %%%
@@ -139,9 +139,6 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
     
     % save ObserverTest
     DynOpt.ObserverTest = ObserverTest;
-    
-    % dim out
-    DynOpt.dim_out  = 9;
 end
 
 

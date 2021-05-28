@@ -56,7 +56,8 @@ if measure_flag == 0
         for i=1:n_iter
             
             % integration
-            [xdot,~] = DynOpt.model(x_propagate,params,DynOpt);
+            offset = DynOpt.integration_pos*6;
+            [xdot,~] = DynOpt.model(x_propagate(offset+1:end),params,DynOpt);
             [x_propagate, params] = DynOpt.model_propagate(DynOpt,DynOpt.BackIterIndex+i,DynOpt.Ts,x_propagate,params);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % update buffer
