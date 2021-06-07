@@ -107,6 +107,7 @@ end
 
 %%%% FIRST OBSERVATION
 if measure_flag == 1
+
     %%%% FIRST OBSERVATION
     x_read = zeros(9,1);
     for i=1:length(params.observed_state)

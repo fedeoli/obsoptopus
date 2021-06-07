@@ -1,5 +1,5 @@
 %% cost function
-function [Jtot,DynOpt] = cost_function_v10(x,params,DynOpt)
+function [Jtot,grad,DynOpt] = cost_function_v10(x,params,DynOpt)
 
 % cost function init
 Jtot = 0;
@@ -47,7 +47,7 @@ for j=1:n_iter
     else
         
         % get measure
-        [DynOpt.buf_dyhat_temp, Yhat] = DynOpt.get_measure(DynOpt,X,j,1,DynOpt.buf_dyhat_temp,DynOpt.Yhat_full_story,params,0);
+        [tmp_buf, Yhat] = DynOpt.get_measure(DynOpt,X,j,1,DynOpt.buf_dyhat_temp,DynOpt.Yhat_full_story,params,0);
                 
         J_meas = zeros(1,size(Yhat,1));
         J_der = zeros(1,size(Yhat,1));
@@ -57,11 +57,7 @@ for j=1:n_iter
         % J meas
         for i=1:length(J_meas)
             diff = (DynOpt.Y(i,shift+j)-Yhat(i,1));
-            if i>3
-                J_meas(i) = DynOpt.scale_factor(j,1,i)*(diff)^2;
-            else
-                J_meas(i) = DynOpt.scale_factor(j,1,i)*(diff)^2;
-            end
+            J_meas(i) = DynOpt.scale_factor(j,1,i)*(diff)^2;
         end
 
         % J derivative
@@ -106,5 +102,7 @@ end
     else
         Jtot = 1; 
     end
+    
+    grad = double(gradient(x));
 end
     

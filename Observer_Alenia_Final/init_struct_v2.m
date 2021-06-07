@@ -19,7 +19,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % simulation time
 setup.t_start = 0;
-setup.Tend = 300;
+setup.Tend = 200;
 setup.Ts = 1e0;
 
 % measurement dimension
@@ -29,7 +29,7 @@ setup.dim_out = 9;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 0;
+setup.print = 1;
 setup.RL = 0;
 setup.load_mem = 0;
 
@@ -63,8 +63,8 @@ setup.input_tuning = 0;
 %%%%% OBSERVING INPUT %%%%%
 setup.control = 1;
 setup.u_amp = 1*pi/4;
-setup.d = 0.2;
-setup.T = 100;
+setup.d = 0.1;
+setup.T = 50;
 setup.u_freq = 1/setup.T;
 setup.target_attitude = 0*[1; 1; 1];
 setup.lowpass_pwm = 0;
@@ -72,7 +72,7 @@ setup.lowpass_pwm = 0;
 %%% FOR THE INTEGRATION TIME SEE SCNARIO_ORBITS_K.m %%%
 
 %%%%% SAMPLING %%%%%
-setup.w = 5;
+setup.w = 10;
 setup.Nts = 3;
 setup.theta = 0;
 setup.beta = 0;
@@ -82,19 +82,19 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 100;
+setup.max_iter = 500;
 setup.maxFcount = Inf;
 setup.safety_density = 1;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-setup.adaptive = 1;
+setup.adaptive = 0;
 setup.dJ_2 = setup.adaptive*5e-3;
 setup.dJ_1 = setup.adaptive*1e-3;
 
 % optimisation
-setup.fcon_flag = 1;
-if setup.fcon_flag == 0
+setup.fcon_flag = 0;
+if setup.fcon_flag == 1
     setup.fmin = @fmincon;
 else
     setup.fmin = @fminsearch;
@@ -118,13 +118,13 @@ setup.alpha_dyn = 1;
 setup.forward = 1;
 
 %%%%% BIAS %%%%%
-setup.bias_dyn = 0;
+setup.bias_dyn = 1;
 setup.bias_enable = 1;
 setup.bias_mag_enable = 0;
 setup.optimise_params = 1;
 setup.nbias = 3;
-setup.nparams = 6;
-setup.inertia = 1;
+setup.nparams = 3;
+setup.inertia = 0;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 setup.noise_enable = 1;
@@ -132,7 +132,7 @@ setup.ErrorOnEA = 1;
 setup.rand_init = 0;
 % bias
 if setup.bias_enable 
-    setup.bias = 1*ones(3,1)*5*pi/180; 
+    setup.bias = 1*ones(3,1)*5*pi/180 + 1e-2*rand(3,1); 
 else
     setup.bias = zeros(3,1);
 end

@@ -162,6 +162,28 @@ function plot_section_v5(DynOpt,params)
                     end
                     linkaxes(ax,'x');
                 end
+                
+                % Attitude
+                % EULER ANGLES FORM
+                if 1
+                    start = 1;
+                    stop = 3;
+                    offset = 0;
+                    figure('Name','Estimation error - Euler angles ')
+                    for k=start:stop
+                        n_subplot = 3;
+                        ax_index = k-offset;
+                        ax(ax_index)=subplot(n_subplot,1,ax_index);
+                        hold on
+                        % results
+                        plot(DynOpt.time,DynOpt.OptErrorStory_Euler(k,:)*180/pi,'-','LineWidth' ,2);
+                        ylabel(strcat('X_',num2str(k),' [deg]'));
+                        xlabel('simulation time [s]')
+                        xlim([0;DynOpt.Tend]);
+                        grid on
+                    end
+        %             linkaxes(ax,'x');
+                end
 
                 % Rotational velocity
                 figure('Name','Rotational velocity estimate')
@@ -288,19 +310,18 @@ function plot_section_v5(DynOpt,params)
         end
         
         % COMPARE COST FUNCTIONS
-        if 0
-            window_interval = 5;
+        if 1
+            window_interval = 2;
             J_time = DynOpt.opt_chosen_time(window_interval:end);
             figure('Name','Cost function comparison')
             hold on 
             grid on
-            fplot = @plot;
-            fplot(J_time,DynOpt.J_meas(window_interval:end),'LineWidth',1.5)
-            fplot(J_time,DynOpt.J_der(window_interval:end),'LineWidth',1.5)
-            fplot(J_time,DynOpt.J_int(window_interval:end),'LineWidth',1.5)
-            fplot(J_time,DynOpt.J_dyn(window_interval:end),'LineWidth',1.5)
-            fplot(J_time,DynOpt.J_quat(window_interval:end),'LineWidth',1.5)
-            legend('Meas','Der','Int','Dyn','Quat')
+            fplot = @semilogy;
+            fplot(J_time,sum(DynOpt.J_meas(:,window_interval:end)),'LineWidth',1.5)
+            fplot(J_time,sum(DynOpt.J_der(:,window_interval:end)),'LineWidth',1.5)
+            fplot(J_time,sum(DynOpt.J_int(:,window_interval:end)),'LineWidth',1.5)
+            fplot(J_time,sum(DynOpt.J_quat(:,window_interval:end)),'LineWidth',1.5)
+            legend('Meas','Der','Int','Quat')
         end
 
         % DJ THRESHOLDS
@@ -325,26 +346,5 @@ function plot_section_v5(DynOpt,params)
             ylabel('occurrences')
         end
         
-        % Attitude
-        % EULER ANGLES FORM
-        if 1
-            start = 1;
-            stop = 3;
-            offset = 0;
-            figure('Name','Estimation error - Euler angles ')
-            for k=start:stop
-                n_subplot = 3;
-                ax_index = k-offset;
-                ax(ax_index)=subplot(n_subplot,1,ax_index);
-                hold on
-                % results
-                plot(DynOpt.time,DynOpt.OptErrorStory_Euler(k,:)*180/pi,'-','LineWidth' ,2);
-                ylabel(strcat('X_',num2str(k),' [deg]'));
-                xlabel('simulation time [s]')
-                xlim([0;DynOpt.Tend]);
-                grid on
-            end
-%             linkaxes(ax,'x');
-        end
     end
 end

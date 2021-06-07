@@ -19,8 +19,8 @@ function [params, satellites_attitude] = ChiefAttitude_ObsOpt_v2_function(params
         % Compute chief's attitude and angular velocity
 
         %%%%% TEST CONTROL %%%%
-    %     eul_Hill2Body = [0, 0, 0]*180/pi;
-        eul_Hill2Body = 1*(DynOpt.target_attitude');
+        eul_Hill2Body = [30, 45, 60]*180/pi;
+%         eul_Hill2Body = 1*(DynOpt.target_attitude');
         %%%%%%%%%%%%%%%%%%%%%%
 
 

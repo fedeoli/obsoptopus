@@ -7,8 +7,8 @@ function [setup,RL] = save_past_sat(setup,DynOpt,DynOpt_save,RL)
     RL.S.satellites_attitude_true = DynOpt_save.attitude_state(:,end);
 
     % disable initial error on the estmation, we get the last opt state
-    setup.init_error_amp = 0*setup.init_error_amp;
-    setup.init_param_error_amp = 0*setup.init_param_error_amp;
+%     setup.init_error_amp = 0*setup.init_error_amp;
+%     setup.init_param_error_amp = 0*setup.init_param_error_amp;
 
     setup.t_start = setup.Tend;
     setup.Tend = setup.t_start + setup.T_duration;

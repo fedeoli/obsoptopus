@@ -10,9 +10,9 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     %%%%%%%%%%%%%%%%%%%%%%%% ENVIRONMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Define Environment domain - exploiring start %%%
     %%% define target attitude and initial state range
-    RL.E.domain_target = 0*[pi/4*ones(3,1), pi/4*ones(3,1)];
+    RL.E.domain_target = 1*[pi/4*ones(3,1), pi/4*ones(3,1)];
     % domain 1 - for nonzero targets
-    RL.E.domain_status = [-pi/30*ones(3,1), pi/30*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
+    RL.E.domain_status = [-pi/4*ones(3,1), pi/4*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
     %%% state vector length
     RL.E.dimState = size(RL.E.domain_status,1);
     RL.E.dimTarget = size(RL.E.domain_target,1);
@@ -27,11 +27,6 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%%%%%%%%%%%%%%%%%%%%%%%% ACTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-    %%%% Magnetometers %%%%
-    RL.A.domain_Magneto = [0, 1];
-    RL.A.domain_Magneto_grid = RL.A.domain_Magneto;
-    RL.A.dimMagneto = length(RL.A.domain_Magneto_grid);
-    
     %%%% Input - omega %%%%
     RL.A.step = 5e-5;
     RL.A.Aw_sign = ones(3,1);
@@ -40,15 +35,9 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     RL.A.dimAw = length(RL.A.domain_Aw_grid);
        
     %%% number of actions field %%%
-    RL.A.nActions = 4;
-    temp = permn(0:RL.A.nActions-1,RL.A.nActions)';
-    [ ~ , pos_false] = find(temp(1,:) > 1);
-    temp(:,pos_false) = [];
-    for i=1:3
-        [ ~ , pos_false] = find(temp(i+1,:) > 1);
-        temp(:,pos_false) = [];
-    end
-    RL.A.domain_A = temp;
+    RL.A.nActions = 1;
+
+    RL.A.domain_A = RL.A.domain_Aw;
     RL.A.dimActions = size(RL.A.domain_A,2);  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 
@@ -65,7 +54,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     current_reward = 0;
     
     % algorithm params
-    RL.S.alpha = 0.1e-2;
+    RL.S.alpha = 1e-2;
     RL.S.gamma = 0.5;
     RL.S.lambda = lambda;
     
@@ -80,10 +69,17 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     end
     
     % function approximation init
+    RL.S.M = 5;
+    RL.S.N = 4;
+    RL.S.statedim = 2;
+%     RL.S.terminal_cond = [5e-4*ones(1,1); 1e-4*ones(1,1)];
+    RL.S.terminal_cond = [1e-2*ones(1,1); 1e-2*ones(1,1)];
+    RL.S.tile = init_tile(RL.S.statedim,RL.A.dimActions,RL.S.M,RL.S.N);
+    RL.S.d = RL.A.dimActions*RL.S.N*(RL.S.M+1)^RL.S.statedim;
     if test_flag
         RL.S.w = w0;
     else
-        RL.S.w = rand(7,1);
+        RL.S.w = rand(RL.S.d,1);
     end
     
     
@@ -99,7 +95,8 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
         init_flag = 1;
         init_episode;
         nu = get_state_v2(DynOpt);
-        terminal = isterminal(nu);
+%         terminal = isterminal(nu,RL.S.terminal_cond);
+        terminal = 0;
         init_flag = 0;
         % save setup
         RL.S.setup = setup;
@@ -109,7 +106,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
         RL.S.i = 1;
         
         % elegibility traces
-        RL.S.z = zeros(7,1);
+        RL.S.z = zeros(RL.S.d,1);
         Vold = 0;
         
         % init action
@@ -117,7 +114,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
         RL.S.A(:,1) = RL.A.domain_A(:,RL.S.action_pos(1));
         
         % SARSA loop
-        while (terminal == 0) && (test_flag == 0) || ((RL.S.i < RL.S.Niter) && (test_flag == 1))
+        while (terminal == 0) && (test_flag == 0) || ((RL.S.i <= RL.S.Niter) && (test_flag == 1))
             
             % store iteration
             i = RL.S.i;
@@ -173,7 +170,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
 
             %%% evaluate reward and next state %%
             nu_R = get_state_v2(DynOpt);
-            terminal = isterminal(nu_R);
+            terminal = isterminal(nu_R,RL.S.terminal_cond);
             if terminal == 1
                 current_reward = 0;
             else
@@ -186,7 +183,8 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
             if RL.S.p(1) < RL.S.epsilon
                 q_val = zeros(1,RL.A.dimActions);
                 for a=1:RL.A.dimActions
-                    q_val(a) = q_fun(nu_R,a,RL.S.w);
+                    [x_greedy,~] = getFeatures(RL.S.tile,RL.S.M,RL.S.N,RL.A.dimActions,a,nu);
+                    q_val(a) = transpose(RL.S.w)*x_greedy;
                 end
                 action_pos = find(q_val == max(q_val),1,'first');
                 action_next = RL.A.domain_A(:,action_pos);
@@ -194,11 +192,11 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
                 action_pos = randi(RL.A.dimActions);
                 action_next = RL.A.domain_A(:,action_pos);
             end
-            
+                        
             %%% TD store data %%%
             if ~test_flag
-                x = [nu;RL.S.action_pos(i)];
-                x_R = [nu_R;action_pos];
+                [x,x_ind] = getFeatures(RL.S.tile,RL.S.M,RL.S.N,RL.A.dimActions,RL.S.action_pos(i),nu);
+                [x_R,x_R_ind] = getFeatures(RL.S.tile,RL.S.M,RL.S.N,RL.A.dimActions,action_pos,nu_R);
                 V = transpose(RL.S.w)*x;
                 V_R = transpose(RL.S.w)*x_R;
                 delta = current_reward + RL.S.gamma*V_R - V;
@@ -223,9 +221,8 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
         end
         
         % update policy from current Q function
-        RL.S.search{s+1}.w = RL.S.w;
-                               
-    end
+        RL.S.search{s+1}.w = RL.S.w;          
+    end    
 end
 
 

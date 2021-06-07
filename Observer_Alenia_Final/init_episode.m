@@ -2,7 +2,7 @@
 
 %%% workspace %%%
 % clear
-keep RL s current_reward test_flag init_flag       
+keep RL s current_reward test_flag init_flag   
 
 setup.load_mem = 0;
 clc
@@ -11,18 +11,17 @@ clc
 %%%%% constant stuff %%%%%
 
 % magnetometers displacement 
+setup.nMagneto = 2;
 setup.RPYbetweenMagnetometers = 1*[0,0,90]*pi/180;
 
 % state duration and main setup
 setup.w = 5;
 setup.Nts = 3;
-setup.d = 0;
-setup.u_amp = 0;
+setup.d = 1*0.1;
+setup.u_amp = 1*pi/4;
 setup.lowpass_pwm = 0;
-% short period setup
-setup.T_duration = 5;
-setup.t_start = 0;
-setup.Tend = setup.t_start + setup.T_duration;
+
+%%% sample time %%%
 setup.Ts = 1e0;
 
 % control
@@ -32,7 +31,7 @@ setup.u_freq = 1/setup.T;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 0;
+setup.print = 1;
 
 %%% integration %%%
 setup.integration_pos = 1;
@@ -49,7 +48,7 @@ setup.identify = 1;
 setup.check = 0;
 setup.fault_sim = 0;
 setup.flush_buffer = 0;
-setup.always_opt = 1;
+setup.always_opt = 0;
 setup.optimise_input = 0;
 setup.input_tuning = 0;
 
@@ -58,13 +57,13 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 60;
+setup.max_iter = 50;
 setup.maxFcount = Inf;
-setup.safety_density = 1;
+setup.safety_density = 10;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-setup.adaptive = 1;
+setup.adaptive = 0;
 setup.dJ_2 = setup.adaptive*1e-2;
 setup.dJ_1 = setup.adaptive*5e-3;
 
@@ -97,20 +96,19 @@ if init_flag == 1
 
     % initial attitude - true
     RL.S.satellites_attitude_true = (RL.E.domain_status(:,2)-RL.E.domain_status(:,1)).*rand(RL.E.dimState,1) + RL.E.domain_status(:,1);
+    
 
     % initial attitude - est
     setup.noise_enable = 1;
 
     % error init definition
     %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    setup.ErrorOnEA = 1;
-    setup.rand_init = 0;
     % params estimation
-    setup.nbias = 0;
     setup.bias_dyn = 0;
     setup.bias_enable = 0;
     setup.bias_mag_enable = 0;
     setup.optimise_params = 0;
+    setup.nbias = 0;
     setup.nparams = 0;
     setup.inertia = 0;
     % bias
@@ -129,27 +127,9 @@ if init_flag == 1
     % measures
     setup.EulerAngleNoiseOnMag = 0*setup.noise_enable*1e-2;
     setup.noise_amp = 1*setup.noise_enable*[1*1e-4*ones(3,1); 1*1e-4*ones(6,1)];
-    %%%% STATE %%%%
-    if setup.integration_pos == 1 && setup.integration_att == 1
-        % POS + ATT
-        setup.init_error_amp = 1*setup.noise_enable*[0*ones(3,1); 0*ones(3,1); 20*ones(4,1); 0*ones(3,1)];
-    elseif setup.integration_pos == 1 && setup.integration_att == 0
-        % POS
-        setup.init_error_amp = 1*setup.noise_enable*[1e1*ones(3,1); 5e-1*ones(3,1)];
-    else
-        % ATT (errors in percentage)
-        setup.init_error_amp = 1*setup.noise_enable*[40*ones(4,1); 10*ones(3,1)];
-    end
-    %%%% PARAMS %%%%
-    setup.ParamsAllPos = 1;
-    setup.init_param_error_amp = 1*setup.noise_enable*ones(1,setup.nparams)*50;
 
     % init state
-    if setup.noise_enable
-        RL.S.S0 = (RL.E.domain_status(:,2)-RL.E.domain_status(:,1)).*rand(RL.E.dimState,1) + RL.E.domain_status(:,1);
-    else
-        RL.S.S0 = RL.S.satellites_attitude_true;
-    end 
+    RL.S.S0 = RL.S.satellites_attitude_true; 
 
     % target attitude
     RL.S.T0 = (RL.E.domain_target(:,2)-RL.E.domain_target(:,1)).*rand(RL.E.dimTarget,1) + RL.E.domain_target(:,1);
@@ -169,10 +149,17 @@ if init_flag == 1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %%%% get first nu and iner_ECI %%%%
-    setup.Tend = 2;
+    setup.T_duration = 2;
+    setup.t_start = 0;
+    setup.Tend = setup.t_start + setup.T_duration;
     [DynOpt, ~] = ObsOpt_RL_v1_fun(setup);   
 else
     % orbit
     RL.S.orbit(:,RL.S.i) = RL.S.orbit(:,RL.S.i-1);
     setup.orbit = RL.S.orbit(:,RL.S.i);
 end
+
+%%% short period setup
+setup.T_duration = 5;
+setup.t_start = 0;
+setup.Tend = setup.t_start + setup.T_duration;

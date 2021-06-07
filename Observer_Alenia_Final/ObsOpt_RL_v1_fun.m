@@ -40,9 +40,6 @@ DynOpt.bias_mag_enable = struct.bias_mag_enable;
 % model name
 DynOpt.modelname = struct.model;
 
-% random init
-DynOpt.rand_init = struct.rand_init;
-
 % observer setup
 DynOpt.ObserverOn = struct.ObserverOn;
 DynOpt.OptimisationOn = struct.OptimisationOn;
@@ -59,7 +56,7 @@ DynOpt.EulerAngleNoiseOnMag = struct.EulerAngleNoiseOnMag;
 DynOpt.simulationModel = struct.simulationModel;
 
 % wrap function
-DynOpt.wrap = @unwrap;
+DynOpt.wrap = @wrapToPi;
 
 % print option
 DynOpt.print = struct.print;
@@ -127,7 +124,8 @@ end
 
 if struct.RL
    DynOpt.RL = struct.RL_data;
-   [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0(DynOpt,params,satellites_iner_ECI);
+   DynOpt.RL.S.satellites_attitude_singleopt = satellites_attitude;
+   [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0(DynOpt,params,satellites_iner_ECI,struct);
 else
     DynOpt.nMagneto = struct.nMagneto;
     DynOpt.dim_out = 3+3*DynOpt.nMagneto;
@@ -161,8 +159,8 @@ if DynOpt.ObserverOn == 1
         DynOpt.d1_derivative = 3;
 
         % buffer init
-        DynOpt.buf_dy = zeros(9,DynOpt.d1_derivative);
-        DynOpt.buf_dyhat = zeros(9,DynOpt.d1_derivative);
+        DynOpt.buf_dY = zeros(9,DynOpt.d1_derivative);
+        DynOpt.buf_dYhat = zeros(9,DynOpt.d1_derivative);
 
         % gradient buffer init
         DynOpt.buf_dyhat_grad = zeros(1,DynOpt.d1_derivative);
@@ -187,9 +185,17 @@ if DynOpt.ObserverOn == 1
         % store quaternions in euler angles after simulation
         DynOpt.Opt_quat = zeros(3,1);
 
-        % init state
+        %%%% init state - v1 %%%%
+        offset = DynOpt.integration_pos*6;
+        DynOpt.X_init = DynOpt.Xtrue;
+        eul = [quat2eul(DynOpt.X_init(offset+1:offset+4)')';DynOpt.X_init(offset+5:end)];
+        add_noise = 1*1e-3*rand(size(eul));
+        eul_init = 1.3*eul+add_noise;
+        quat_init = [eul2quat(eul_init(1:3)')'; eul_init(4:end)];
         % estimated attitude
-        DynOpt.X_init = 1.5*DynOpt.Xtrue;
+        if DynOpt.noise_enable == 1
+            DynOpt.X_init(offset+1:end) = quat_init;
+        end
         DynOpt.X = DynOpt.X_init;
         DynOpt.Xtrue_init = DynOpt.Xtrue;
 
@@ -254,13 +260,14 @@ if DynOpt.ObserverOn == 1
         end
 
         % observer cost function init
+        DynOpt.fcon_flag = struct.fcon_flag;
         DynOpt.J = 1e3;
         DynOpt.Jstory = DynOpt.J;
         DynOpt.Jdot_story = 0;
-        DynOpt.J_meas = ones(DynOpt.dim_out,1);
-        DynOpt.J_der = ones(DynOpt.dim_out,1);
-        DynOpt.J_int = ones(DynOpt.dim_out,1);
-        DynOpt.J_quat = ones(DynOpt.dim_out,1);
+        DynOpt.J_meas = ones(9,1);
+        DynOpt.J_der = ones(9,1);
+        DynOpt.J_int = ones(9,1);
+        DynOpt.J_quat = ones(9,1);
         DynOpt.temp_time = [];
         DynOpt.opt_chosen_time = [];
         DynOpt.grad_story = zeros(DynOpt.StateDim + length(DynOpt.param_estimate),1);
@@ -293,7 +300,9 @@ if DynOpt.ObserverOn == 1
     DynOpt.Bcon = [];
     DynOpt.Acon_eq = [];
     DynOpt.Bcon_eq = [];
-    DynOpt.nonlcon = [];
+    DynOpt.nonlcon = @mycon;
+    DynOpt.lb = [-Inf*ones(1,7), 0*ones(1,DynOpt.nparams)];
+    DynOpt.ub = [Inf*ones(1,7), 1e-1*ones(1,DynOpt.nparams)];
     DynOpt.J_big = 0;
     % optimset
     DynOpt.TolX = 1e-10;
@@ -301,6 +310,9 @@ if DynOpt.ObserverOn == 1
     DynOpt.TolExit_J = struct.J_thresh;
     DynOpt.TolExit_X = 1e-10;
     DynOpt.outfun = @outputfcn;
+    DynOpt.alphaVector = [1*ones(1,7), 1e-5*ones(1,DynOpt.nparams)];
+    DynOpt.minAlgorithm = 'quasi-newton';
+    DynOpt.GradObj = 'off';
     % define cost functions and measurements
     DynOpt.cost_function = @cost_function_v10;
     DynOpt.cost_function_name = 'cost_function_v10';
@@ -317,10 +329,22 @@ if DynOpt.ObserverOn == 1
 
     % set options
     if struct.print 
-       DynOpt.myoptioptions = optimset('MaxIter', DynOpt.max_iter,'display','iter','TolFun',DynOpt.TolFun,'TolX',DynOpt.TolX,'MaxFunEvals',DynOpt.maxFcount,'OutputFcn',DynOpt.outfun);
+       DynOpt.display = 'iter';
     else
-       DynOpt.myoptioptions = optimset('MaxIter', DynOpt.max_iter,'display','off','TolFun',DynOpt.TolFun,'TolX',DynOpt.TolX,'MaxFunEvals',DynOpt.maxFcount,'OutputFcn',DynOpt.outfun); 
+        DynOpt.display = 'off'; 
     end
+    
+    %%% for the gradient based functions %%%
+    DynOpt.myoptioptions = optimset('Algorithm',DynOpt.minAlgorithm,'MaxIter', DynOpt.max_iter,'display',DynOpt.display,...
+                                    'TolFun',DynOpt.TolFun,'TolX',DynOpt.TolX,'MaxFunEvals',DynOpt.maxFcount,'OutputFcn',DynOpt.outfun,...
+                                    'GradObj', DynOpt.GradObj);%...
+%                                        'FinDiffType','central','FinDiffRelStep',DynOpt.alphaVector,'UseParallel',false);
+
+    %%% for fminsearch only %%%
+%     DynOpt.myoptioptions = optimset('MaxIter', DynOpt.max_iter,'display',DynOpt.display,...
+%                                     'TolFun',DynOpt.TolFun,'TolX',DynOpt.TolX,'MaxFunEvals',DynOpt.maxFcount,'OutputFcn',DynOpt.outfun);
+
+
     DynOpt.fmin = struct.fmin;
 
     % gradient descent
@@ -386,12 +410,20 @@ if DynOpt.ObserverOn == 1
         DynOpt.eps_noise_story = [struct.eps_noise_story_last, DynOpt.eps_noise_story];
         
         DynOpt.buf_trackerr = struct.buf_trackerr_last;
+        
+        %%%% init state - v2 %%%%
+        DynOpt.X_init = DynOpt.OptXstory_runtime(:,end);
+        DynOpt.X = DynOpt.X_init;
+
+        % update params with the initial values
+        DynOpt.params_update = @params_update_local_function;
+        [params,DynOpt] = DynOpt.params_update(DynOpt.X_init,params,DynOpt);
     end
     
 %% Observer implementation 
     if DynOpt.OptimisationOn
         if strcmp(struct.Observer,'OPT')
-            [DynOpt,params] = ObsOpt_bias_v5_function(DynOpt,params);
+            [DynOpt,params] = ObsOpt_bias_v6_function(DynOpt,params);
         else
             disp('Observer wrong option')
         end
@@ -450,7 +482,7 @@ if DynOpt.ObserverOn == 1
         end_step = 1;
         
         %%% buffer length
-        buf_len = size(DynOpt.buf_dy,2);
+        buf_len = size(DynOpt.buf_dY,2);
         story_len = size(DynOpt.Y_full_story,2);
         if story_len > buf_len
             DynOpt.buf_dY_last = DynOpt.Y_full_story(:,end-buf_len:end-1);

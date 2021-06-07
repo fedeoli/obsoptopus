@@ -5,7 +5,7 @@ function DynOpt = scale_factor(DynOpt)
     DynOpt.y_end = 3;
     DynOpt.nJ_nl = 1;
     %%%% bias values %%%%%
-    temp_scale = [1;1;1;1];
+    temp_scale = [1;0;0;1];
 %     temp_scale = [1;1*1e-1;1*5e-2;5e-1];
     DynOpt.scale_factor_init = 1e0.*temp_scale.*ones(DynOpt.y_end+DynOpt.nJ_nl,9);
     DynOpt.scale_factor_init(:,DynOpt.dim_out+1:end) = 0;
