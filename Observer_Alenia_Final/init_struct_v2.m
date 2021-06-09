@@ -19,7 +19,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % simulation time
 setup.t_start = 0;
-setup.Tend = 200;
+setup.Tend = 150;
 setup.Ts = 1e0;
 
 % measurement dimension
@@ -63,7 +63,7 @@ setup.input_tuning = 0;
 %%%%% OBSERVING INPUT %%%%%
 setup.control = 1;
 setup.u_amp = 1*pi/4;
-setup.d = 0.1;
+setup.d = 0.05;
 setup.T = 50;
 setup.u_freq = 1/setup.T;
 setup.target_attitude = 0*[1; 1; 1];
@@ -72,7 +72,7 @@ setup.lowpass_pwm = 0;
 %%% FOR THE INTEGRATION TIME SEE SCNARIO_ORBITS_K.m %%%
 
 %%%%% SAMPLING %%%%%
-setup.w = 10;
+setup.w = 5;
 setup.Nts = 3;
 setup.theta = 0;
 setup.beta = 0;
@@ -88,9 +88,9 @@ setup.safety_density = 1;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-setup.adaptive = 0;
-setup.dJ_2 = setup.adaptive*5e-3;
-setup.dJ_1 = setup.adaptive*1e-3;
+setup.adaptive = 1;
+setup.dJ_2 = setup.adaptive*5e-2;
+setup.dJ_1 = setup.adaptive*1e-2;
 
 % optimisation
 setup.fcon_flag = 0;
@@ -118,13 +118,13 @@ setup.alpha_dyn = 1;
 setup.forward = 1;
 
 %%%%% BIAS %%%%%
-setup.bias_dyn = 1;
-setup.bias_enable = 1;
+setup.bias_dyn = 0;
+setup.bias_enable = 0;
 setup.bias_mag_enable = 0;
 setup.optimise_params = 1;
-setup.nbias = 3;
+setup.nbias = 0;
 setup.nparams = 3;
-setup.inertia = 0;
+setup.inertia = 1;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 setup.noise_enable = 1;

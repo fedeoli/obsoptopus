@@ -321,7 +321,8 @@ function plot_section_v5(DynOpt,params)
             fplot(J_time,sum(DynOpt.J_der(:,window_interval:end)),'LineWidth',1.5)
             fplot(J_time,sum(DynOpt.J_int(:,window_interval:end)),'LineWidth',1.5)
             fplot(J_time,sum(DynOpt.J_quat(:,window_interval:end)),'LineWidth',1.5)
-            legend('Meas','Der','Int','Quat')
+            fplot(J_time,DynOpt.J_spr(window_interval:end),'LineWidth',1.5)
+            legend('Meas','Der','Int','Quat','Spring')
         end
 
         % DJ THRESHOLDS

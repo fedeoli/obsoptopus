@@ -58,7 +58,7 @@ function [DynOpt, params,satellites_iner_ECI,satellites_attitude] = satellite_in
     %%%%%% GYROSCOPE NOISE MODEL %%%%
     % nparams
     DynOpt.nparams = struct.nparams;
-    params.RW_var = 1*3e-3;
+    params.RW_var = 1*4e-3;
     params.RW_var_mag = 1*3e-7;
     params.RW_mean = 0;
     params.RW_mean_mag = 0;

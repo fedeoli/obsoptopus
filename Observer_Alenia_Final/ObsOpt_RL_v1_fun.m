@@ -268,6 +268,7 @@ if DynOpt.ObserverOn == 1
         DynOpt.J_der = ones(9,1);
         DynOpt.J_int = ones(9,1);
         DynOpt.J_quat = ones(9,1);
+        DynOpt.J_spr = 1;
         DynOpt.temp_time = [];
         DynOpt.opt_chosen_time = [];
         DynOpt.grad_story = zeros(DynOpt.StateDim + length(DynOpt.param_estimate),1);
@@ -306,7 +307,7 @@ if DynOpt.ObserverOn == 1
     DynOpt.J_big = 0;
     % optimset
     DynOpt.TolX = 1e-10;
-    DynOpt.TolFun = 1e-10;
+    DynOpt.TolFun = 1e-7;
     DynOpt.TolExit_J = struct.J_thresh;
     DynOpt.TolExit_X = 1e-10;
     DynOpt.outfun = @outputfcn;
@@ -314,8 +315,8 @@ if DynOpt.ObserverOn == 1
     DynOpt.minAlgorithm = 'quasi-newton';
     DynOpt.GradObj = 'off';
     % define cost functions and measurements
-    DynOpt.cost_function = @cost_function_v10;
-    DynOpt.cost_function_name = 'cost_function_v10';
+    DynOpt.cost_function = @cost_function_v11;
+    DynOpt.cost_function_name = 'cost_function_v11';
     if strcmp(struct.Observer,'EKF')
         DynOpt.get_measure = @get_measure_v6_function;
         DynOpt.get_measure_name = 'get_measure_v6';
@@ -449,6 +450,7 @@ if DynOpt.ObserverOn == 1
     DynOpt.J_der = DynOpt.J_der(:,2:end);
     DynOpt.J_int = DynOpt.J_int(:,2:end);
     DynOpt.J_quat = DynOpt.J_quat(:,2:end);
+    DynOpt.J_spr = DynOpt.J_spr(2:end);
     DynOpt.dJ_cond_story = DynOpt.dJ_cond_story(:,2:end);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

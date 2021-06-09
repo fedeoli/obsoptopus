@@ -179,6 +179,9 @@ for k=1:length(DynOpt.time)
                                                     @(x)DynOpt.nonlcon(x,DynOpt,params_local), DynOpt.myoptioptions);
                 end
 
+                % use last opt point to update Dynopt buffers
+                [~, ~, DynOpt] = DynOpt.cost_function(NewXopt,params,DynOpt);
+                
                 % opt counter
                 DynOpt.opt_counter = DynOpt.opt_counter + 1;
             else
@@ -194,8 +197,8 @@ for k=1:length(DynOpt.time)
                 DynOpt.J_meas_buf = 1;
                 DynOpt.J_der_buf = 1;
                 DynOpt.J_int_buf = 1;
-                DynOpt.J_dyn_buf = 1;
                 DynOpt.J_quat_buf = 1;
+                DynOpt.J_spr_buf = 1;
             end
 
             % adaptive buffer backup restore
@@ -227,6 +230,7 @@ for k=1:length(DynOpt.time)
                 DynOpt.J_der(:,end+1) = DynOpt.J_der_buf;
                 DynOpt.J_int(:,end+1) = DynOpt.J_int_buf;
                 DynOpt.J_quat(:,end+1) = DynOpt.J_quat_buf;
+                DynOpt.J_spr(:,end+1) = DynOpt.J_spr_buf;
 
                 % counters
                 DynOpt.jump_flag = 0;
