@@ -10,7 +10,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     %%%%%%%%%%%%%%%%%%%%%%%% ENVIRONMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Define Environment domain - exploiring start %%%
     %%% define target attitude and initial state range
-    RL.E.domain_target = 1*[pi/4*ones(3,1), pi/4*ones(3,1)];
+    RL.E.domain_target = 0*[pi/4*ones(3,1), pi/4*ones(3,1)];
     % domain 1 - for nonzero targets
     RL.E.domain_status = [-pi/4*ones(3,1), pi/4*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
     %%% state vector length
@@ -28,16 +28,23 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%% ACTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     %%%% Input - omega %%%%
-    RL.A.step = 5e-5;
+    RL.A.step = 2e-5;
     RL.A.Aw_sign = ones(3,1);
     RL.A.domain_Aw = [0, 1];
     RL.A.domain_Aw_grid = RL.A.domain_Aw;
     RL.A.dimAw = length(RL.A.domain_Aw_grid);
+    
+    %%%% Input - omega %%%%
+    RL.A.step_mag = 1e-2;
+    RL.A.Amag = 0;
+    RL.A.domain_Amag = [-1, 1];
+    RL.A.domain_Amag_grid = RL.A.domain_Amag;
+    RL.A.dimAmag = length(RL.A.domain_Amag_grid);
        
     %%% number of actions field %%%
-    RL.A.nActions = 1;
+    RL.A.nActions = 2;
 
-    RL.A.domain_A = RL.A.domain_Aw;
+    RL.A.domain_A = permn(0:1,RL.A.nActions)';
     RL.A.dimActions = size(RL.A.domain_A,2);  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 
@@ -73,7 +80,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     RL.S.N = 4;
     RL.S.statedim = 2;
 %     RL.S.terminal_cond = [5e-4*ones(1,1); 1e-4*ones(1,1)];
-    RL.S.terminal_cond = [1e-2*ones(1,1); 1e-2*ones(1,1)];
+    RL.S.terminal_cond = [1e-3*ones(1,1); 3e-3*ones(1,1)];
     RL.S.tile = init_tile(RL.S.statedim,RL.A.dimActions,RL.S.M,RL.S.N);
     RL.S.d = RL.A.dimActions*RL.S.N*(RL.S.M+1)^RL.S.statedim;
     if test_flag
@@ -147,6 +154,8 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
             
             % get input sign
             RL.A.Aw_sign = sign(DynOpt.Aw);
+            % get Mag amplitude
+            RL.A.Amag = DynOpt.y_weight(4);
             
             if fail_flag == 0
                 DynOpt_save.OptXstory_runtime = DynOpt.OptXstory_runtime;

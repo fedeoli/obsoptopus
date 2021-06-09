@@ -17,8 +17,8 @@ setup.RPYbetweenMagnetometers = 1*[0,0,90]*pi/180;
 % state duration and main setup
 setup.w = 5;
 setup.Nts = 3;
-setup.d = 1*0.1;
-setup.u_amp = 1*pi/4;
+setup.d = 0*0.1;
+setup.u_amp = 0*pi/4;
 setup.lowpass_pwm = 0;
 
 %%% sample time %%%
@@ -31,7 +31,7 @@ setup.u_freq = 1/setup.T;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 1;
+setup.print = 0;
 
 %%% integration %%%
 setup.integration_pos = 1;
@@ -57,7 +57,7 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 50;
+setup.max_iter = 30;
 setup.maxFcount = Inf;
 setup.safety_density = 10;
 
@@ -72,8 +72,8 @@ setup.fcon_flag = 0;
 if setup.fcon_flag == 1
     setup.fmin = @fmincon;
 else
-%     setup.fmin = @fminsearch;
-    setup.fmin = @fminunc;
+    setup.fmin = @fminsearch;
+%     setup.fmin = @fminunc;
 end
 
 %%%%% INTEGRATION %%%%%
@@ -107,10 +107,10 @@ if init_flag == 1
     setup.bias_dyn = 0;
     setup.bias_enable = 0;
     setup.bias_mag_enable = 0;
-    setup.optimise_params = 0;
+    setup.optimise_params = 1;
     setup.nbias = 0;
-    setup.nparams = 0;
-    setup.inertia = 0;
+    setup.nparams = 3;
+    setup.inertia = 1;
     % bias
     if setup.bias_enable 
         setup.bias = 1*ones(3,1)*5*pi/180; 

@@ -117,6 +117,11 @@ DynOpt.optimise_params = struct.optimise_params;
 % set 0 Aw as default
 DynOpt.Aw = zeros(3,1);
 
+% SCALE FACTOR SETUP 
+DynOpt.temp_scale = [1;1;1e-2;1e-3];
+DynOpt.lambda = [1; 1; 1; 1];
+DynOpt.y_weight = [1*ones(1,3) 1*ones(1,3*struct.nMagneto)];
+
 %%%%% set orbit %%%%%
 if DynOpt.generate_orbit
     DynOpt.orbit = struct.orbit;

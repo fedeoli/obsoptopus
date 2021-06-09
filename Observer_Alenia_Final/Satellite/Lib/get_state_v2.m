@@ -15,9 +15,6 @@ function nu = get_state_v2(DynOpt)
 %     e_fin = theta*e + (1-theta)*e_track;
 %     theta_dot = 1;
 %     edot_fin = theta_dot*edot + (1-theta_dot)*edot_track;
-%     
-%     % get state
-%     nu = [e_fin, edot_fin];
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%% VERSION WITH COMPONENTS %%%%%%%%%%%%%%%%%
 %     % get data

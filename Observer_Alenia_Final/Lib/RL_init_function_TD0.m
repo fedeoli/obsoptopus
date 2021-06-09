@@ -13,17 +13,22 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     %%% Aw %%%
     temp_Aw = zeros(3,1);
     for i=1:3
-        if RL.S.A(RL.S.i) == 0
+        if RL.S.A(1,RL.S.i) == 0
             temp_Aw(i) = 0;
         else
             if RL.A.Aw_sign(i) ~= 0
-                temp_Aw(i) = -RL.S.A(RL.S.i)*RL.A.Aw_sign(i);
+                temp_Aw(i) = -RL.S.A(1,RL.S.i)*RL.A.Aw_sign(i);
             else
-                temp_Aw(i) = RL.S.A(RL.S.i);
+                temp_Aw(i) = RL.S.A(1,RL.S.i);
             end
         end
     end
-    DynOpt.Aw = 0*RL.A.step*temp_Aw;
+    DynOpt.Aw = 1*RL.A.step*temp_Aw;
+    
+    % Mag Amp
+    DynOpt.y_weight(4:end) = max(0,RL.A.Amag + RL.S.A(2,RL.S.i)*RL.A.step_mag);
+    DynOpt = scale_factor(DynOpt);
+    
 
     %%%%%%%%%%%%%%% from the state %%%%%%%%%%%%%%%%%%%%%%%%
     % generate state init
@@ -55,5 +60,5 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
         DynOpt.init_state = [satellites_iner_ECI; satellites_attitude];
     end
 
-    DynOpt = scale_factor(DynOpt);
+    
 end
