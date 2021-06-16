@@ -116,7 +116,7 @@ dw(5:7, 1) = I\( - cross_omIom + GG_torque + air_drag_torque + tau);
 %%%%% BIAS DYNAMICS %%%%
 if DynOpt.bias_dyn == 1
     if DynOpt.synthetic_int == 1
-        dw_gyro = params.RW_var*randn(3,1) + params.RW_mean;
+        dw_gyro = params.RW_var*randn(DynOpt.nbias,1) + params.RW_mean;
         dw_mag = params.RW_var_mag*randn(3*DynOpt.nMagneto,1) + params.RW_mean_mag;
         dw(8:10,1) = dw_gyro;
         DynOpt.RW_mem(DynOpt.current_pos,:) = dw(8:8+DynOpt.nbias-1,1);

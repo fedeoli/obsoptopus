@@ -197,8 +197,9 @@ if DynOpt.ObserverOn == 1
         DynOpt.X_init = DynOpt.Xtrue;
         eul = [quat2eul(DynOpt.X_init(offset+1:offset+4)')';DynOpt.X_init(offset+5:end)];
 %         add_noise = 1*[5e1*ones(3,1); 1e-1*ones(3,1); 1e-3*ones(3,1)].*rand(size(eul));
-        add_noise = 0*[5e1*ones(3,1); 1e-1*ones(3,1)].*rand(size(eul));
-        eul_init = 1.2*eul+add_noise;
+%         add_noise = 0*[5e1*ones(3,1); 1e-1*ones(3,1)].*rand(size(eul));
+        add_noise = 0;
+        eul_init = 1.3*eul+add_noise;
         quat_init = [eul2quat(eul_init(1:3)')'; eul_init(4:end)];
         % estimated attitude
         if DynOpt.noise_enable == 1

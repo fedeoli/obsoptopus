@@ -19,7 +19,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % simulation time
 setup.t_start = 0;
-setup.Tend = 100;
+setup.Tend = 30;
 setup.Ts = 1e0;
 
 % measurement dimension
@@ -29,7 +29,7 @@ setup.dim_out = 9;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 0;
+setup.print = 1;
 setup.RL = 0;
 setup.load_mem = 0;
 
@@ -72,7 +72,7 @@ setup.lowpass_pwm = 0;
 %%% FOR THE INTEGRATION TIME SEE SCNARIO_ORBITS_K.m %%%
 
 %%%%% SAMPLING %%%%%
-setup.w = 20;
+setup.w = 5;
 setup.Nts = 3;
 setup.theta = 0;
 setup.beta = 0;
@@ -88,7 +88,7 @@ setup.safety_density = 5;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
-setup.adaptive = 1;
+setup.adaptive = 0;
 setup.dJ_2 = setup.adaptive*3e-1;
 setup.dJ_1 = setup.adaptive*1e-1;
 
@@ -118,12 +118,12 @@ setup.alpha_dyn = 1;
 setup.forward = 1;
 
 %%%%% BIAS %%%%%
-setup.bias_dyn = 0;
-setup.bias_enable = 0;
+setup.bias_dyn = 1;
+setup.bias_enable = 1;
 setup.bias_mag_enable = 0;
-setup.optimise_params = 0;
-setup.nbias = 0;
-setup.nparams = 0;
+setup.optimise_params = 1;
+setup.nbias = 1;
+setup.nparams = 1;
 setup.inertia = 0;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
