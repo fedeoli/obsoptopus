@@ -125,7 +125,6 @@ for k=1:length(DynOpt.time)
 
         cols_nonzeros = length(find(sum(DynOpt.Y ~= 0) == size(DynOpt.Y,1)));
         if 1 && (cols_nonzeros < DynOpt.w)
-            
             % measures
             [DynOpt.buf_dYhat, Yhat] = DynOpt.get_measure(DynOpt,DynOpt.OptXstory(:,DynOpt.Niter),0,measure_forward,DynOpt.buf_dYhat,DynOpt.intYhat_full_story,params,DynOpt.Niter);
             DynOpt.Yhat_full_story(:,end+1) = Yhat(:,1);

@@ -19,7 +19,7 @@ addpath(genpath([pwd '/Satellite']));
 
 % simulation time
 setup.t_start = 0;
-setup.Tend = 150;
+setup.Tend = 100;
 setup.Ts = 1e0;
 
 % measurement dimension
@@ -29,7 +29,7 @@ setup.dim_out = 9;
 
 % plot and graphics
 setup.plot = 0;
-setup.print = 1;
+setup.print = 0;
 setup.RL = 0;
 setup.load_mem = 0;
 
@@ -62,9 +62,9 @@ setup.input_tuning = 0;
 
 %%%%% OBSERVING INPUT %%%%%
 setup.control = 1;
-setup.u_amp = 1*pi/4;
-setup.d = 0.05;
-setup.T = 50;
+setup.u_amp = 1*pi/6;
+setup.d = 0.2;
+setup.T = 100;
 setup.u_freq = 1/setup.T;
 setup.target_attitude = 0*[1; 1; 1];
 setup.lowpass_pwm = 0;
@@ -72,7 +72,7 @@ setup.lowpass_pwm = 0;
 %%% FOR THE INTEGRATION TIME SEE SCNARIO_ORBITS_K.m %%%
 
 %%%%% SAMPLING %%%%%
-setup.w = 5;
+setup.w = 20;
 setup.Nts = 3;
 setup.theta = 0;
 setup.beta = 0;
@@ -82,15 +82,15 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 500;
+setup.max_iter = 30;
 setup.maxFcount = Inf;
-setup.safety_density = 1;
+setup.safety_density = 5;
 
 %%%% HYSTERESIS %%%%
 % the optimisation is run if COND > THRESH (set to 0 for a nocare condition)
 setup.adaptive = 1;
-setup.dJ_2 = setup.adaptive*5e-2;
-setup.dJ_1 = setup.adaptive*1e-2;
+setup.dJ_2 = setup.adaptive*3e-1;
+setup.dJ_1 = setup.adaptive*1e-1;
 
 % optimisation
 setup.fcon_flag = 0;
@@ -121,10 +121,10 @@ setup.forward = 1;
 setup.bias_dyn = 0;
 setup.bias_enable = 0;
 setup.bias_mag_enable = 0;
-setup.optimise_params = 1;
+setup.optimise_params = 0;
 setup.nbias = 0;
-setup.nparams = 3;
-setup.inertia = 1;
+setup.nparams = 0;
+setup.inertia = 0;
 
 %%%%% NOISE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 setup.noise_enable = 1;

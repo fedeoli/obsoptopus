@@ -56,7 +56,7 @@ DynOpt.EulerAngleNoiseOnMag = struct.EulerAngleNoiseOnMag;
 DynOpt.simulationModel = struct.simulationModel;
 
 % wrap function
-DynOpt.wrap = @wrapToPi;
+DynOpt.wrap = @unwrap;
 
 % print option
 DynOpt.print = struct.print;
@@ -118,8 +118,10 @@ DynOpt.optimise_params = struct.optimise_params;
 DynOpt.Aw = zeros(3,1);
 
 % SCALE FACTOR SETUP 
-DynOpt.temp_scale = [1;1;1e-2;1e-3];
-DynOpt.lambda = [1; 1; 1; 1];
+DynOpt.y_end = 3;
+DynOpt.nJ_nl = 2;
+DynOpt.temp_scale = [1;0;0;1;0];
+DynOpt.lambda = [1; 1; 1; 1; 1];
 DynOpt.y_weight = [1*ones(1,3) 1*ones(1,3*struct.nMagneto)];
 
 %%%%% set orbit %%%%%
@@ -194,8 +196,9 @@ if DynOpt.ObserverOn == 1
         offset = DynOpt.integration_pos*6;
         DynOpt.X_init = DynOpt.Xtrue;
         eul = [quat2eul(DynOpt.X_init(offset+1:offset+4)')';DynOpt.X_init(offset+5:end)];
-        add_noise = 1*1e-3*rand(size(eul));
-        eul_init = 1.3*eul+add_noise;
+%         add_noise = 1*[5e1*ones(3,1); 1e-1*ones(3,1); 1e-3*ones(3,1)].*rand(size(eul));
+        add_noise = 0*[5e1*ones(3,1); 1e-1*ones(3,1)].*rand(size(eul));
+        eul_init = 1.2*eul+add_noise;
         quat_init = [eul2quat(eul_init(1:3)')'; eul_init(4:end)];
         % estimated attitude
         if DynOpt.noise_enable == 1

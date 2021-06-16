@@ -57,7 +57,7 @@ setup.Jdot_thresh = 9e-1;
 setup.blue_flag = 0;
 % built in/gradient optimisation conditions
 setup.J_thresh = [1e-10, 1e3];
-setup.max_iter = 30;
+setup.max_iter = 500;
 setup.maxFcount = Inf;
 setup.safety_density = 10;
 

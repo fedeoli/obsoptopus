@@ -13,21 +13,24 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
     %%% Aw %%%
     temp_Aw = zeros(3,1);
     for i=1:3
-        if RL.S.A(1,RL.S.i) == 0
+        if RL.A.domain_Aw(RL.S.A(1,RL.S.i)) == 0
             temp_Aw(i) = 0;
         else
             if RL.A.Aw_sign(i) ~= 0
-                temp_Aw(i) = -RL.S.A(1,RL.S.i)*RL.A.Aw_sign(i);
+                temp_Aw(i) = -RL.A.domain_Aw(RL.S.A(1,RL.S.i))*RL.A.Aw_sign(i);
             else
-                temp_Aw(i) = RL.S.A(1,RL.S.i);
+                temp_Aw(i) = RL.A.domain_Aw(RL.S.A(1,RL.S.i));
             end
         end
     end
     DynOpt.Aw = 1*RL.A.step*temp_Aw;
+    RL.S.Aw_hist(:,RL.S.i) = DynOpt.Aw;
     
     % Mag Amp
-    DynOpt.y_weight(4:end) = max(0,RL.A.Amag + RL.S.A(2,RL.S.i)*RL.A.step_mag);
+%     DynOpt.y_weight(4:end) = max(0,RL.A.Amag + RL.A.domain_Amag(RL.S.A(2,RL.S.i))*RL.A.step_mag);
     DynOpt = scale_factor(DynOpt);
+    RL.S.Amag_hist(RL.S.i) = DynOpt.y_weight(4);
+    
     
 
     %%%%%%%%%%%%%%% from the state %%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,7 +42,7 @@ function [DynOpt,satellites_iner_ECI,satellites_attitude] = RL_init_function_TD0
         satellites_attitude = RL.S.satellites_attitude_true;
     else
         % true attitude
-        RL.S.satellites_attitude_true = RL.S.satellites_attitude_singleopt;
+%         RL.S.satellites_attitude_true = RL.S.satellites_attitude_singleopt;
         attitude_quat = eul2quat(transpose(RL.S.satellites_attitude_true(1:3)));
         satellites_attitude = [transpose(attitude_quat); RL.S.satellites_attitude_true(4:6)];
     end

@@ -12,7 +12,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     %%% define target attitude and initial state range
     RL.E.domain_target = 0*[pi/4*ones(3,1), pi/4*ones(3,1)];
     % domain 1 - for nonzero targets
-    RL.E.domain_status = [-pi/4*ones(3,1), pi/4*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
+    RL.E.domain_status = 0*[-pi/4*ones(3,1), pi/4*ones(3,1); -deg2rad(10)*ones(3,1), deg2rad(10)*ones(3,1)];
     %%% state vector length
     RL.E.dimState = size(RL.E.domain_status,1);
     RL.E.dimTarget = size(RL.E.domain_target,1);
@@ -36,15 +36,15 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     
     %%%% Input - omega %%%%
     RL.A.step_mag = 1e-2;
-    RL.A.Amag = 0;
+    RL.A.Amag = 0.5;%RL.A.step_mag*randi(floor(1/RL.A.step_mag));
     RL.A.domain_Amag = [-1, 1];
     RL.A.domain_Amag_grid = RL.A.domain_Amag;
     RL.A.dimAmag = length(RL.A.domain_Amag_grid);
        
     %%% number of actions field %%%
-    RL.A.nActions = 2;
+    RL.A.nActions = 1;
 
-    RL.A.domain_A = permn(0:1,RL.A.nActions)';
+    RL.A.domain_A = permn(1:2,RL.A.nActions)';
     RL.A.dimActions = size(RL.A.domain_A,2);  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 
@@ -53,7 +53,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     if test_flag
         RL.S.epsilon = 1;
     else
-        RL.S.epsilon = 0.8;
+        RL.S.epsilon = 0.95;
     end
         
     % reward storage
@@ -79,8 +79,9 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
     RL.S.M = 5;
     RL.S.N = 4;
     RL.S.statedim = 2;
-%     RL.S.terminal_cond = [5e-4*ones(1,1); 1e-4*ones(1,1)];
-    RL.S.terminal_cond = [1e-3*ones(1,1); 3e-3*ones(1,1)];
+    RL.S.terminal_cond = [1e-3*ones(1,1); 1e-3*ones(1,1)];
+    RL.S.terminal_streak_cond = 5;
+    RL.S.terminal_streak = 0;
     RL.S.tile = init_tile(RL.S.statedim,RL.A.dimActions,RL.S.M,RL.S.N);
     RL.S.d = RL.A.dimActions*RL.S.N*(RL.S.M+1)^RL.S.statedim;
     if test_flag
@@ -102,8 +103,7 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
         init_flag = 1;
         init_episode;
         nu = get_state_v2(DynOpt);
-%         terminal = isterminal(nu,RL.S.terminal_cond);
-        terminal = 0;
+        RL = isterminal(nu,RL.S.terminal_cond,RL.S.terminal_streak_cond,RL);
         init_flag = 0;
         % save setup
         RL.S.setup = setup;
@@ -121,8 +121,8 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
         RL.S.A(:,1) = RL.A.domain_A(:,RL.S.action_pos(1));
         
         % SARSA loop
-        while (terminal == 0) && (test_flag == 0) || ((RL.S.i <= RL.S.Niter) && (test_flag == 1))
-            
+        while (RL.S.isTerminal == 0) && (test_flag == 0) || ((RL.S.i <= RL.S.Niter) && (test_flag == 1))
+           
             % store iteration
             i = RL.S.i;
             
@@ -138,8 +138,11 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
                 disp(['Learning - Episode: ', num2str(s), '/', num2str(RL.S.Nsearch)]);
             end
             disp(['Current state: ', string(nu')]);
-            disp(['Current acts: ', num2str(transpose(RL.S.A(:,i)))]);
+%             action = [DynOpt.Aw(1), DynOpt.y_weight(4)];
+            action = DynOpt.Aw(1);
+            disp(['Current acts: ', num2str(action)]);
             disp(['Current reward: ', num2str(current_reward)]);
+            disp(['Terminal streak: ', num2str(RL.S.terminal_streak),'/',num2str(RL.S.terminal_streak_cond)])
             disp('        ');
 
             % launch satellite simulation
@@ -179,9 +182,13 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
 
             %%% evaluate reward and next state %%
             nu_R = get_state_v2(DynOpt);
-            terminal = isterminal(nu_R,RL.S.terminal_cond);
-            if terminal == 1
-                current_reward = 0;
+            RL = isterminal(nu_R,RL.S.terminal_cond,RL.S.terminal_streak_cond,RL);
+            if RL.S.isTerminal == 1
+                if fail_flag == 0
+                    current_reward = 0;
+                else
+                    current_reward = -100;
+                end
             else
                 current_reward = -1;
             end
@@ -225,12 +232,12 @@ function RL = ObsOpt_RL_TD_FA(Nsearch,lambda,test_flag, w0, Niter)
                 %%% FOR SATELLITES ONLY - NOT GENERAL %%%
                 [setup,RL] = save_past_sat(setup,DynOpt,DynOpt_save,RL);  
             else
-                terminal = 1;
+                RL.S.isTerminal = 1;
             end
         end
         
         % update policy from current Q function
-        RL.S.search{s+1}.w = RL.S.w;          
+            RL.S.search{s+1}.w = RL.S.w;          
     end    
 end
 

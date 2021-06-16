@@ -1,8 +1,14 @@
 %% function to get if a state is terminal
-function isTerminal = isterminal(s,terminal_cond)
+function RL = isterminal(s,terminal_cond,terminal_streak_cond,RL)
     if (sum(abs(s) < terminal_cond) == length(s))
-        isTerminal = 1;
+        RL.S.terminal_streak = RL.S.terminal_streak + 1;
     else
-        isTerminal = 0; 
+        RL.S.terminal_streak = 0;
+    end
+    
+    if RL.S.terminal_streak > terminal_streak_cond
+        RL.S.isTerminal = 1;
+    else
+        RL.S.isTerminal = 0;
     end
 end

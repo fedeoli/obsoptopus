@@ -1,7 +1,7 @@
 %% signal information policy
 function DynOpt = dJ_cond_v5_function(DynOpt,params)
     
-    buffer_ready = (nnz(DynOpt.Y_space) >= 1) || (size(DynOpt.Yhat_full_story,2) > 1);
+    buffer_ready = (nnz(DynOpt.Y_space) >= 1) || (size(DynOpt.Yhat_full_story,2) > DynOpt.Nts);
 
     if buffer_ready
         
@@ -25,7 +25,7 @@ function DynOpt = dJ_cond_v5_function(DynOpt,params)
         DynOpt.dJ_cond = norm(DynOpt.e);
         DynOpt.dJ_cond_story(:,end+1) = [DynOpt.e; DynOpt.e_dot; DynOpt.e_int; DynOpt.dJ_cond];
     else
-        DynOpt.dJ_cond = 0;
+        DynOpt.dJ_cond = 1;
         DynOpt.dJ_cond_story(:,end+1) = [0; 0; 0; DynOpt.dJ_cond];
     end
 end
